@@ -15,7 +15,10 @@
     try{
       const f=new FormData(form);const signed=await AONE.signIn(String(f.get('email')),String(f.get('password')));
       if(signed?.user?.app_metadata?.must_change_password){sessionStorage.setItem('aone_after_password',mode==='admin'?'./admin-login.html':'./login.html');location.replace('./change-password.html');return;}
-      const ctx=await AONE.chooseContext();
+      let ctx=await AONE.chooseContext();
+      if(!ctx && mode==='admin'){
+        try{const pending=JSON.parse(localStorage.getItem('aone_guard_pending_company')||'null'); if(pending?.company && pending?.email?.toLowerCase()===String(signed?.user?.email||'').toLowerCase()){await AONE.rpc('guard_create_organization',{p_name:pending.company}); localStorage.removeItem('aone_guard_pending_company'); ctx=await AONE.chooseContext();}}catch{}
+      }
       if(!ctx) throw new Error('Für diesen Zugang ist noch keine Firma eingerichtet.');
       if(mode==='admin'&&!AONE.isManager(ctx.role)){AONE.signOut();throw new Error('Dieser Zugang ist kein Management-Zugang.');}
       location.replace(mode==='admin'?'./admin.html':'./app.html');
