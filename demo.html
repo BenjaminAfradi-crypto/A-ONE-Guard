@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#0b1016">
+  <title>EGNAS Demo · A ONE Guard</title>
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" type="image/svg+xml" href="./assets/aone-mark.svg">
+  <link rel="apple-touch-icon" href="./assets/aone-mark.svg">
+  <link rel="stylesheet" href="./styles.css">
+  <style>
+    .demo-banner{margin:0 0 14px;padding:11px 14px;border:1px solid #6b561f;background:#30270e;color:#f6d87e;border-radius:14px;font-size:13px;display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}.demo-dot{width:8px;height:8px;border-radius:50%;background:#f6c344;display:inline-block;margin-right:6px}.demo-switch{display:flex;gap:6px;background:#0c1219;border:1px solid var(--line);padding:4px;border-radius:12px}.demo-switch button{border:0;background:transparent;color:var(--muted);padding:8px 11px;border-radius:8px;font-weight:800}.demo-switch button.active{background:#1b2a3c;color:white}.demo-menu{display:grid;gap:4px}.demo-menu button{width:100%;text-align:left;border:0;background:transparent;color:#afbdcc;padding:11px 12px;border-radius:10px;font-weight:750}.demo-menu button.active,.demo-menu button:hover{background:#1b2b3e;color:white;box-shadow:inset 3px 0 var(--blue)}.demo-checkpoint{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px;border:1px solid var(--line);border-radius:13px;background:#0f1720}.demo-checkpoint.done{border-color:#2b6543;background:#10281a}.demo-checkpoint strong{display:block}.demo-checkpoint small{color:var(--muted)}.demo-log{display:grid;gap:8px}.demo-log-item{padding:11px 12px;border-radius:12px;background:#0f1720;border:1px solid var(--line)}.demo-log-item time{color:#8ea0b4;font-size:12px}.demo-log-item b{display:block;margin:3px 0}.demo-log-item p{margin:0;color:#c8d2dc;font-size:13px;line-height:1.45}.demo-kpi-label{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;font-weight:800}.demo-kpi-value{font-size:30px;font-weight:900;margin-top:5px}.demo-map{height:180px;border-radius:15px;border:1px solid var(--line);background:radial-gradient(circle at 28% 42%,#224f7e 0 3px,transparent 4px),radial-gradient(circle at 66% 58%,#2d6f48 0 3px,transparent 4px),linear-gradient(135deg,#101922,#15283a);position:relative;overflow:hidden}.demo-map:before,.demo-map:after{content:"";position:absolute;border:1px solid #29405a;border-radius:50%;width:110px;height:110px}.demo-map:before{left:18%;top:18%}.demo-map:after{right:16%;bottom:-24px}.demo-map-label{position:absolute;font-size:12px;color:#c5d2df;background:#0b1119cc;border:1px solid #2a3a4d;padding:5px 7px;border-radius:8px}.demo-map-label.a{left:30%;top:32%}.demo-map-label.b{right:16%;bottom:25%}.demo-footer-note{font-size:12px;color:var(--muted);margin:20px 0 90px;text-align:center}@media(max-width:980px){.demo-menu{display:none}}
+  </style>
+</head>
+<body>
+<div class="shell">
+  <header class="topbar"><a class="brand" href="./index.html"><img class="brand-mark" src="./assets/aone-mark.svg" alt="A ONE"><div><b>A ONE Guard</b><span>EGNAS Testumgebung</span></div></a><div class="top-actions"><span class="pill yellow">DEMO</span><button class="btn small" id="reset-demo">Demo zurücksetzen</button></div></header>
+  <div class="demo-banner"><div><span class="demo-dot"></span><b>Testumgebung für EGNAS Sicherheit Management GmbH</b> · ausschließlich fiktive Beispieldaten, keine echten Mitarbeiter- oder Kundendaten.</div><div class="demo-switch"><button id="role-admin" class="active">Management</button><button id="role-employee">Mitarbeiter</button></div></div>
+  <div class="layout"><aside class="sidebar"><div id="demo-menu" class="demo-menu"></div></aside><main class="content" id="demo-view"></main></div>
+  <nav class="mobile-tabs" id="demo-mobile"></nav><div class="demo-footer-note">A ONE Guard · interaktive Produktdemo · Eingaben werden nur lokal in diesem Browser gespeichert.</div>
+</div>
+<script src="./demo.js"></script>
+</body>
+</html>
