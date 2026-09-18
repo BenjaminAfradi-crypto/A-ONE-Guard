@@ -1,0 +1,13 @@
+{
+  "name":"A ONE Guard",
+  "short_name":"A ONE Guard",
+  "description":"Security Operations, WKS, Wachbuch, Zeiterfassung und Guard Academy.",
+  "start_url":"./app.html",
+  "scope":"./",
+  "display":"standalone",
+  "background_color":"#0b1016",
+  "theme_color":"#0b1016",
+  "icons":[
+    {"src":"./assets/aone-mark.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}
+  ]
+}
