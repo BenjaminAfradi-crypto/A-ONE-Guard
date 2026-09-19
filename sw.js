@@ -1,5 +1,5 @@
-const CACHE='aone-guard-v8';
-const CORE=['./index.html','./demo.html','./demo.js','./login.html','./admin-login.html','./register.html','./change-password.html','./gzip-loader.js','./change-password.js.gz.b64','./app.html','./admin.html','./styles.css','./core.js','./auth.js','./register.js','./employee.js.gz.b64','./admin.js.gz.b64','./register-sw.js','./manifest.webmanifest','./assets/aone-mark.svg','./assets/aone-logo.svg'];
+const CACHE='aone-guard-v9';
+const CORE=['./index.html','./impressum.html','./demo.html','./demo.js','./login.html','./admin-login.html','./register.html','./change-password.html','./gzip-loader.js','./change-password.js.gz.b64','./app.html','./admin.html','./styles.css','./core.js','./auth.js','./register.js','./employee.js.gz.b64','./admin.js.gz.b64','./register-sw.js','./manifest.webmanifest','./assets/aone-mark.svg','./assets/aone-logo.svg'];
 self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(CORE)).then(()=>self.skipWaiting())));
 self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));
 self.addEventListener('fetch',e=>{const u=new URL(e.request.url);if(u.origin!==location.origin||e.request.method!=='GET')return;e.respondWith(fetch(e.request).then(r=>{if(r.ok){const c=r.clone();caches.open(CACHE).then(x=>x.put(e.request,c))}return r}).catch(()=>caches.match(e.request).then(r=>r||caches.match('./index.html'))))});
