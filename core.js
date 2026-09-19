@@ -1,7 +1,7 @@
 const AONE = (() => {
   const SUPABASE_URL = 'https://rwojydgekobbckpcvlnu.supabase.co';
   const API_KEY = 'sb_publishable_fCfxNJgvjLHsz1xr7_4Lhw_DxrNt8jd';
-  const STRIPE_URL = 'https://buy.stripe.com/test_00wdRa7YHbt4f6f04R0sU07';
+  const STRIPE_URL = 'https://buy.stripe.com/5kQ6oI0DMaEcgNR4XW18c00';
   const SESSION_KEY = 'aone_guard_session_v1';
   const CONTEXT_KEY = 'aone_guard_context_v1';
 
