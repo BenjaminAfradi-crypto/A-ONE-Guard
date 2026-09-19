@@ -1,7 +1,7 @@
 {
   "name":"A ONE Guard",
   "short_name":"A ONE Guard",
-  "description":"Security Operations, WKS, Wachbuch, Zeiterfassung und Guard Academy.",
+  "description":"Security Operations, WKS, Wachbuch, Zeiterfassung und A ONE Lernwelt.",
   "start_url":"./app.html",
   "scope":"./",
   "display":"standalone",
