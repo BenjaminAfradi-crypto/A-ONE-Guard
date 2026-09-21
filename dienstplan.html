@@ -17,6 +17,7 @@
     .quick-card,.planner-card{background:rgba(18,25,35,.96);border:1px solid rgba(255,255,255,.09);border-radius:18px;padding:16px}
     .quick-grid{display:grid;grid-template-columns:1.2fr 1fr 1fr .8fr .8fr .9fr auto;gap:10px;align-items:end}
     .mini-field{display:grid;gap:6px}.mini-field label{font-size:12px;color:#94a3b8}.mini-field .input,.mini-field select{width:100%}
+    .weekday-choices{display:flex;flex-wrap:wrap;gap:14px;margin-top:12px}.weekday-choices label{display:flex;align-items:center;gap:6px;min-height:36px}
     .preset-row{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}.preset-row button{font-size:12px;padding:7px 10px}
     .advanced{margin-top:10px;border-top:1px solid rgba(255,255,255,.08);padding-top:10px}.advanced summary{cursor:pointer;color:#cbd5e1}
     .advanced-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:10px}
@@ -36,7 +37,7 @@
     .danger{border-color:rgba(248,113,113,.35)!important;color:#fecaca!important}
     .muted2{color:#94a3b8;font-size:12px}.busy{opacity:.6;pointer-events:none}
     @media(max-width:1100px){.quick-grid{grid-template-columns:1fr 1fr 1fr}.quick-grid .create-wrap{grid-column:1/-1}.week-grid{grid-template-columns:repeat(7,240px)}}
-    @media(max-width:700px){.planner-shell{padding:0 10px 28px}.quick-grid,.advanced-grid,.modal-grid{grid-template-columns:1fr 1fr}.week-grid{display:block;overflow:visible}.day{min-height:0;margin-bottom:10px}.planner-head{align-items:flex-start}.filters select{min-width:0;flex:1}.quick-grid .wide-mobile{grid-column:1/-1}}
+    @media(max-width:700px){.topbar{flex-wrap:wrap}.top-actions{width:100%;flex-wrap:wrap}.mini-field{min-width:0}.mini-field .input{min-width:0}.planner-shell{padding:0 10px 28px}.quick-grid,.advanced-grid,.modal-grid{grid-template-columns:1fr 1fr}.week-grid{display:block;overflow:visible}.day{min-height:0;margin-bottom:10px}.planner-head{align-items:flex-start}.filters select{min-width:0;flex:1}.quick-grid .wide-mobile{grid-column:1/-1}}
   </style>
 </head>
 <body>
@@ -48,39 +49,46 @@
 </div>
 <main class="planner-shell">
   <div class="planner-head">
-    <div><h1>Dienstplan</h1><div class="muted">Schicht in wenigen Sekunden eintragen. Komplexe Prüfungen laufen im Hintergrund.</div></div>
+    <div><h1>Dienstplan</h1><div class="muted">Schicht in wenigen Sekunden eintragen. Wochentage auswählen, Vorschau prüfen und Dienste eintragen.</div></div>
     <div class="planner-toolbar"><button class="btn" id="add-site">+ Objekt</button><button class="btn" id="copy-week">Woche kopieren</button><button class="btn primary" id="confirm-week">Woche freigeben</button></div>
   </div>
 
   <section class="quick-card" id="quick-card">
     <form id="quick-form">
       <div class="quick-grid">
-        <div class="mini-field wide-mobile"><label>Objekt</label><select class="input" id="q-site" required></select></div>
-        <div class="mini-field"><label>Mitarbeiter</label><select class="input" id="q-employee"></select></div>
-        <div class="mini-field"><label>Datum</label><input class="input" id="q-date" type="date" required></div>
-        <div class="mini-field"><label>Von</label><input class="input" id="q-start" type="time" value="08:00" required></div>
-        <div class="mini-field"><label>Bis</label><input class="input" id="q-end" type="time" value="16:00" required></div>
-        <div class="mini-field"><label>Wiederholen</label><select class="input" id="q-repeat"><option value="1">Nur 1 Tag</option><option value="5">5 Tage</option><option value="7">7 Tage</option></select></div>
+        <div class="mini-field wide-mobile"><label for="q-site">Objekt</label><select class="input" id="q-site" required></select></div>
+        <div class="mini-field"><label for="q-employee">Mitarbeiter</label><select class="input" id="q-employee"></select></div>
+        <div class="mini-field"><label for="q-date">Datum</label><input class="input" id="q-date" type="date" required></div>
+        <div class="mini-field"><label for="q-start">Von</label><input class="input" id="q-start" type="time" value="08:00" required></div>
+        <div class="mini-field"><label for="q-end">Bis</label><input class="input" id="q-end" type="time" value="16:00" required></div>
+        <div class="mini-field wide-mobile"><label for="q-repeat">Wiederholen</label><select class="input" id="q-repeat"><option value="1">Nur 1 Tag</option><option value="5">5 Tage am Stück</option><option value="7">7 Tage am Stück</option><option value="custom">Wochentage wählen</option></select></div>
         <div class="create-wrap"><button class="btn primary" type="submit">Schicht eintragen</button></div>
       </div>
-      <div class="preset-row"><span class="muted2">Schnellzeiten:</span><button class="btn small preset" type="button" data-start="06:00" data-end="14:00">06–14</button><button class="btn small preset" type="button" data-start="08:00" data-end="16:00">08–16</button><button class="btn small preset" type="button" data-start="12:00" data-end="20:00">12–20</button><button class="btn small preset" type="button" data-start="14:00" data-end="22:00">14–22</button><button class="btn small preset" type="button" data-start="22:00" data-end="06:00">22–06</button></div>
-      <details class="advanced"><summary>Mehr Optionen</summary><div class="advanced-grid"><div class="mini-field"><label>Bezeichnung</label><input class="input" id="q-title" placeholder="z. B. Empfang / Ladendetektiv"></div><div class="mini-field"><label>Qualifikation</label><select class="input" id="q-qual"><option value="none">Keine Vorgabe</option><option value="unterrichtung">§34a Unterrichtung</option><option value="sachkunde">§34a Sachkunde</option></select></div><div class="mini-field"><label>Notiz</label><input class="input" id="q-notes" placeholder="optional"></div></div></details>
+      <fieldset id="recurrence" hidden style="margin-top:12px;border:1px solid #334155;border-radius:12px;padding:12px">
+        <legend>Wiederkehrende Dienste</legend>
+        <div class="mini-field"><label for="q-until">Bis einschließlich</label><input class="input" id="q-until" type="date"></div>
+        <div class="weekday-choices"><label><input type="checkbox" name="q-weekday" value="1" checked> Mo</label><label><input type="checkbox" name="q-weekday" value="2" checked> Di</label><label><input type="checkbox" name="q-weekday" value="3" checked> Mi</label><label><input type="checkbox" name="q-weekday" value="4" checked> Do</label><label><input type="checkbox" name="q-weekday" value="5" checked> Fr</label><label><input type="checkbox" name="q-weekday" value="6" > Sa</label><label><input type="checkbox" name="q-weekday" value="0" > So</label></div>
+        <p class="muted2">Wähle die gewünschten Tage im Zeitraum. Maximal 91 Kalendertage pro Serie.</p>
+      </fieldset>
+      <p id="quick-preview" class="muted2" role="status" aria-live="polite"></p>
+      <div class="preset-row"><span class="muted2">Schnellzeiten:</span><button class="btn small preset" type="button" data-start="06:00" data-end="14:00">06–14</button><button class="btn small preset" type="button" data-start="08:00" data-end="16:00">08–16</button><button class="btn small preset" type="button" data-start="10:00" data-end="21:00">10–21</button><button class="btn small preset" type="button" data-start="12:00" data-end="20:00">12–20</button><button class="btn small preset" type="button" data-start="14:00" data-end="22:00">14–22</button><button class="btn small preset" type="button" data-start="22:00" data-end="06:00">22–06</button></div>
+      <details class="advanced"><summary>Mehr Optionen</summary><div class="advanced-grid"><div class="mini-field"><label for="q-title">Bezeichnung</label><input class="input" id="q-title" placeholder="z. B. Empfang / Ladendetektiv"></div><div class="mini-field"><label for="q-qual">Qualifikation</label><select class="input" id="q-qual"><option value="none">Keine Vorgabe</option><option value="unterrichtung">§34a Unterrichtung</option><option value="sachkunde">§34a Sachkunde</option></select></div><div class="mini-field"><label for="q-notes">Notiz</label><input class="input" id="q-notes" placeholder="optional"></div></div></details>
     </form>
-    <div id="quick-msg"></div>
+    <div id="quick-msg" role="status" aria-live="polite"></div>
   </section>
 
   <div class="weekbar">
-    <div class="planner-toolbar"><button class="btn small" id="prev-week">←</button><button class="btn small" id="today-week">Diese Woche</button><button class="btn small" id="next-week">→</button><span class="week-title" id="week-title"></span></div>
+    <div class="planner-toolbar"><button class="btn small" id="prev-week" aria-label="Vorherige Woche">←</button><button class="btn small" id="today-week">Diese Woche</button><button class="btn small" id="next-week" aria-label="Nächste Woche">→</button><span class="week-title" id="week-title"></span></div>
     <div class="stats" id="stats"></div>
   </div>
   <div class="filters"><select class="input" id="filter-site"></select><select class="input" id="filter-employee"></select><label><input type="checkbox" id="show-canceled"> Stornierte anzeigen</label></div>
-  <div id="planner-msg"></div>
+  <div id="planner-msg" role="status" aria-live="polite"></div>
   <section class="week-grid" id="week-grid"></section>
 </main>
 
-<div class="planner-modal" id="shift-modal"><div class="planner-dialog"><h2>Schicht bearbeiten</h2><form id="edit-form"><input type="hidden" id="e-id"><div class="modal-grid"><div class="mini-field"><label>Objekt</label><select class="input" id="e-site" required></select></div><div class="mini-field"><label>Mitarbeiter</label><select class="input" id="e-employee"></select></div><div class="mini-field"><label>Datum</label><input class="input" id="e-date" type="date" required></div><div class="mini-field"><label>Bezeichnung</label><input class="input" id="e-title" required></div><div class="mini-field"><label>Von</label><input class="input" id="e-start" type="time" required></div><div class="mini-field"><label>Bis</label><input class="input" id="e-end" type="time" required></div><div class="mini-field"><label>Qualifikation</label><select class="input" id="e-qual"><option value="none">Keine Vorgabe</option><option value="unterrichtung">§34a Unterrichtung</option><option value="sachkunde">§34a Sachkunde</option></select></div><div class="mini-field"><label>Status</label><select class="input" id="e-status"><option value="planned">Geplant</option><option value="confirmed">Freigegeben</option><option value="in_progress">Läuft</option><option value="completed">Abgeschlossen</option><option value="canceled">Storniert</option></select></div><div class="mini-field" style="grid-column:1/-1"><label>Notiz</label><textarea class="input" id="e-notes" rows="3"></textarea></div></div><div id="edit-msg"></div><div class="modal-actions"><button class="btn danger" id="cancel-shift" type="button">Schicht stornieren</button><button class="btn" id="close-edit" type="button">Schließen</button><button class="btn primary" type="submit">Speichern</button></div></form></div></div>
+<div class="planner-modal" id="shift-modal"><div class="planner-dialog"><h2>Schicht bearbeiten</h2><form id="edit-form"><input type="hidden" id="e-id"><div class="modal-grid"><div class="mini-field"><label for="e-site">Objekt</label><select class="input" id="e-site" required></select></div><div class="mini-field"><label for="e-employee">Mitarbeiter</label><select class="input" id="e-employee"></select></div><div class="mini-field"><label for="e-date">Datum</label><input class="input" id="e-date" type="date" required></div><div class="mini-field"><label for="e-title">Bezeichnung</label><input class="input" id="e-title" required></div><div class="mini-field"><label for="e-start">Von</label><input class="input" id="e-start" type="time" required></div><div class="mini-field"><label for="e-end">Bis</label><input class="input" id="e-end" type="time" required></div><div class="mini-field"><label for="e-qual">Qualifikation</label><select class="input" id="e-qual"><option value="none">Keine Vorgabe</option><option value="unterrichtung">§34a Unterrichtung</option><option value="sachkunde">§34a Sachkunde</option></select></div><div class="mini-field"><label for="e-status">Status</label><select class="input" id="e-status"><option value="planned">Geplant</option><option value="confirmed">Freigegeben</option><option value="in_progress">Läuft</option><option value="completed">Abgeschlossen</option><option value="canceled">Storniert</option></select></div><div class="mini-field" style="grid-column:1/-1"><label for="e-notes">Notiz</label><textarea class="input" id="e-notes" rows="3"></textarea></div></div><div id="edit-msg"></div><div class="modal-actions"><button class="btn danger" id="cancel-shift" type="button">Schicht stornieren</button><button class="btn" id="close-edit" type="button">Schließen</button><button class="btn primary" type="submit">Speichern</button></div></form></div></div>
 
-<div class="planner-modal" id="site-modal"><div class="planner-dialog"><h2>Objekt schnell anlegen</h2><form id="site-form"><div class="modal-grid"><div class="mini-field"><label>Objektname</label><input class="input" id="s-name" required placeholder="z. B. IKEA Frankfurt"></div><div class="mini-field"><label>Kunde</label><input class="input" id="s-customer" placeholder="optional"></div><div class="mini-field" style="grid-column:1/-1"><label>Adresse</label><input class="input" id="s-address" placeholder="optional"></div></div><div id="site-msg"></div><div class="modal-actions"><button class="btn" id="close-site" type="button">Schließen</button><button class="btn primary" type="submit">Objekt anlegen</button></div></form></div></div>
+<div class="planner-modal" id="site-modal"><div class="planner-dialog"><h2>Objekt schnell anlegen</h2><form id="site-form"><div class="modal-grid"><div class="mini-field"><label for="s-name">Objektname</label><input class="input" id="s-name" required placeholder="z. B. IKEA Frankfurt"></div><div class="mini-field"><label for="s-customer">Kunde</label><input class="input" id="s-customer" placeholder="optional"></div><div class="mini-field" style="grid-column:1/-1"><label for="s-address">Adresse</label><input class="input" id="s-address" placeholder="optional"></div></div><div id="site-msg"></div><div class="modal-actions"><button class="btn" id="close-site" type="button">Schließen</button><button class="btn primary" type="submit">Objekt anlegen</button></div></form></div></div>
 
 <script src="./core.js"></script>
 <script src="./dienstplan.js"></script>
