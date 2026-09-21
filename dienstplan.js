@@ -104,34 +104,86 @@
   }
 
   function buildShiftRow({siteId,employeeId,date,startTime,endTime,title,qual,notes,status='planned'}){
+    if(!date||!startTime||!endTime||startTime===endTime)throw new Error('Bitte unterschiedliche Start- und Endzeiten angeben.');
     const start=makeDate(date,startTime);let end=makeDate(date,endTime);if(end<=start)end=addDays(end,1);
     const site=siteById(siteId);
     return {org_id:state.ctx.org_id,site_id:siteId,employee_id:employeeId||null,title:(title||site?.name||'Schicht').trim(),starts_at:start.toISOString(),ends_at:end.toISOString(),required_qualification:qual||'none',status,notes:notes?.trim()||null,created_by:state.user.id};
   }
 
-  function localOverlap(row){
-    if(!row.employee_id)return null;
-    const a=new Date(row.starts_at),b=new Date(row.ends_at);
-    return state.shifts.find(s=>s.employee_id===row.employee_id&&s.status!=='canceled'&&a<new Date(s.ends_at)&&b>new Date(s.starts_at));
+  async function checkConflict(row,excludeId=''){
+    if(!row.employee_id||row.status==='canceled')return;
+    // Query the actual interval: the conflicting shift may start in another week.
+    const query=new URLSearchParams({select:'id,starts_at,ends_at',org_id:`eq.${state.ctx.org_id}`,employee_id:`eq.${row.employee_id}`,status:'neq.canceled',starts_at:`lt.${row.ends_at}`,ends_at:`gt.${row.starts_at}`,limit:'1'});
+    if(excludeId)query.set('id',`neq.${excludeId}`);
+    const matches=await AONE.table('guard_shifts',query.toString());
+    if(!Array.isArray(matches))throw new Error('Konfliktprüfung nicht möglich. Bitte erneut versuchen.');
+    if(matches.length){
+      const s=matches[0],a=new Date(s.starts_at),b=new Date(s.ends_at);
+      throw new Error(`Überschneidung: ${fmtDate(a)} ${localTime(a)} bis ${fmtDate(b)} ${localTime(b)}. Bitte einen anderen Mitarbeiter oder Zeitraum wählen.`);
+    }
+  }
+
+  function quickDates(){
+    const base=$('#q-date').value,mode=$('#q-repeat').value;
+    if(!base)throw new Error('Bitte ein Startdatum wählen.');
+    const start=new Date(`${base}T12:00:00`);
+    if(mode!=='custom')return Array.from({length:Number(mode)},(_,i)=>localDate(addDays(start,i)));
+    const until=$('#q-until').value;
+    if(!until||until<base)throw new Error('Das Enddatum muss am oder nach dem Startdatum liegen.');
+    const last=new Date(`${until}T12:00:00`);
+    if(last>addDays(start,90))throw new Error('Bitte höchstens 91 Kalendertage auf einmal planen.');
+    const weekdays=[...document.querySelectorAll('[name="q-weekday"]:checked')].map(el=>Number(el.value));
+    if(!weekdays.length)throw new Error('Bitte mindestens einen Wochentag wählen.');
+    const dates=[];
+    for(let d=start;d<=last;d=addDays(d,1))if(weekdays.includes(d.getDay()))dates.push(localDate(d));
+    if(!dates.length)throw new Error('Im Zeitraum liegt keiner der gewählten Wochentage.');
+    return dates;
+  }
+
+  function quickPreview(){
+    const custom=$('#q-repeat').value==='custom';
+    $('#recurrence').hidden=!custom;$('#q-until').required=custom;$('#q-until').disabled=!custom;$('#q-until').min=$('#q-date').value;
+    try{
+      const dates=quickDates(),start=$('#q-start').value,end=$('#q-end').value;
+      if(!start||!end)throw new Error('Bitte Start- und Endzeit angeben.');
+      if(start===end)throw new Error('Start- und Endzeit müssen verschieden sein.');
+      $('#quick-preview').textContent=`${dates.length} Schicht${dates.length===1?'':'en'} · ${fmtDate(new Date(dates[0]+'T12:00:00'))}${dates.length>1?' bis '+fmtDate(new Date(dates.at(-1)+'T12:00:00')):''} · ${start}–${end}${end<start?' (Ende am Folgetag)':''}`;
+    }catch(err){$('#quick-preview').textContent=err.message}
+  }
+
+  function batchResult(el,created,errors){
+    message(el,`${created} Schicht${created===1?'':'en'} gespeichert${errors.length?` · ${errors.length} nicht gespeichert`:''}.`,created?'ok':'err');
+    if(errors.length)el.insertAdjacentHTML('beforeend',`<details open><summary>Nicht gespeicherte Schichten</summary><ul>${errors.map(error=>`<li>${esc(error)}</li>`).join('')}</ul></details>`);
+  }
+
+  async function refreshWeek(){
+    try{await loadWeek()}catch(err){message($('#planner-msg'),`Ansicht konnte nicht aktualisiert werden: ${err.message}. Bitte die Woche erneut laden.`,'err')}
+  }
+
+  async function navigateWeek(date){
+    if(state.loading)return;
+    const previous=state.weekStart;setBusy(true);state.weekStart=date;
+    try{await loadWeek()}catch(err){state.weekStart=previous;message($('#planner-msg'),err.message,'err')}finally{setBusy(false)}
   }
 
   async function createQuick(e){
-    e.preventDefault();message($('#quick-msg'),'');
+    e.preventDefault();if(state.loading)return;message($('#quick-msg'),'');
     const siteId=$('#q-site').value;if(!siteId)return message($('#quick-msg'),'Bitte ein Objekt auswählen.','err');
-    const employeeId=$('#q-employee').value,baseDate=$('#q-date').value,start=$('#q-start').value,end=$('#q-end').value,repeat=Number($('#q-repeat').value||1),qual=$('#q-qual').value,title=$('#q-title').value,notes=$('#q-notes').value;
+    const employeeId=$('#q-employee').value,baseDate=$('#q-date').value,start=$('#q-start').value,end=$('#q-end').value,qual=$('#q-qual').value,title=$('#q-title').value,notes=$('#q-notes').value;
     if(!baseDate||!start||!end)return message($('#quick-msg'),'Datum und Uhrzeit fehlen.','err');
+    if(start===end)return message($('#quick-msg'),'Start- und Endzeit müssen verschieden sein.','err');
+    let dates;try{dates=quickDates()}catch(err){return message($('#quick-msg'),err.message,'err')}
     const employee=empById(employeeId);if(employee&&!empEligible(employee,qual))return message($('#quick-msg'),'Der gewählte Mitarbeiter erfüllt die geforderte Qualifikation nicht.','err');
     setBusy(true);let created=0;const errors=[];
     try{
-      for(let i=0;i<repeat;i++){
-        const d=addDays(new Date(`${baseDate}T12:00:00`),i);
-        const row=buildShiftRow({siteId,employeeId,date:localDate(d),startTime:start,endTime:end,title,qual,notes});
-        const overlap=localOverlap(row);if(overlap){errors.push(`${localDate(d)}: Überschneidung`);continue}
-        try{await AONE.insert('guard_shifts',row,false);created++}catch(err){errors.push(`${localDate(d)}: ${err.message}`)}
+      for(const date of dates){
+        try{
+          const row=buildShiftRow({siteId,employeeId,date,startTime:start,endTime:end,title,qual,notes});
+          await checkConflict(row);await AONE.insert('guard_shifts',row,false);created++;
+        }catch(err){errors.push(`${date}: ${err.message}`)}
       }
-      await loadWeek();
-      if(created) message($('#quick-msg'),`${created} Schicht${created===1?'':'en'} eingetragen${errors.length?` · ${errors.length} nicht erstellt`:''}.`,'ok');
-      if(!created&&errors.length) message($('#quick-msg'),errors[0],'err');
+      if(created)state.weekStart=startOfWeek(new Date(dates[0]+'T12:00:00'));
+      await refreshWeek();batchResult($('#quick-msg'),created,errors);
     }finally{setBusy(false)}
   }
 
@@ -144,11 +196,12 @@
   }
 
   async function saveEdit(e){
-    e.preventDefault();message($('#edit-msg'),'');const id=$('#e-id').value;const siteId=$('#e-site').value,employeeId=$('#e-employee').value,qual=$('#e-qual').value;
+    e.preventDefault();if(state.loading)return;message($('#edit-msg'),'');const id=$('#e-id').value;const siteId=$('#e-site').value,employeeId=$('#e-employee').value,qual=$('#e-qual').value;
     const employee=empById(employeeId);if(employee&&!empEligible(employee,qual))return message($('#edit-msg'),'Der Mitarbeiter erfüllt die geforderte Qualifikation nicht.','err');
+    if($('#e-start').value===$('#e-end').value)return message($('#edit-msg'),'Start- und Endzeit müssen verschieden sein.','err');
     const row=buildShiftRow({siteId,employeeId,date:$('#e-date').value,startTime:$('#e-start').value,endTime:$('#e-end').value,title:$('#e-title').value,qual,notes:$('#e-notes').value,status:$('#e-status').value});
     delete row.org_id;delete row.created_by;
-    setBusy(true);try{await AONE.update('guard_shifts',`id=eq.${encodeURIComponent(id)}&org_id=eq.${encodeURIComponent(state.ctx.org_id)}`,row);closeModal('#shift-modal');await loadWeek();AONE.toast('Schicht gespeichert.')}catch(err){message($('#edit-msg'),err.message,'err')}finally{setBusy(false)}
+    setBusy(true);try{await checkConflict(row,id);await AONE.update('guard_shifts',`id=eq.${encodeURIComponent(id)}&org_id=eq.${encodeURIComponent(state.ctx.org_id)}`,row);closeModal('#shift-modal');await refreshWeek();AONE.toast('Schicht gespeichert.')}catch(err){message($('#edit-msg'),err.message,'err')}finally{setBusy(false)}
   }
 
   async function cancelShift(){
@@ -157,9 +210,10 @@
   }
 
   async function cloneShift(id,daysToAdd=1){
+    if(state.loading)return;
     const s=state.shifts.find(x=>x.id===id);if(!s)return;const start=addDays(new Date(s.starts_at),daysToAdd),end=addDays(new Date(s.ends_at),daysToAdd);
     const row={org_id:state.ctx.org_id,site_id:s.site_id,employee_id:s.employee_id,title:s.title,starts_at:start.toISOString(),ends_at:end.toISOString(),required_qualification:s.required_qualification,status:'planned',notes:s.notes,created_by:state.user.id};
-    setBusy(true);try{await AONE.insert('guard_shifts',row,false);await loadWeek();AONE.toast('Schicht kopiert.')}catch(err){AONE.toast(err.message,'err')}finally{setBusy(false)}
+    setBusy(true);try{await checkConflict(row);await AONE.insert('guard_shifts',row,false);state.weekStart=startOfWeek(start);await refreshWeek();AONE.toast('Schicht kopiert.')}catch(err){AONE.toast(err.message,'err')}finally{setBusy(false)}
   }
 
   async function confirmOne(id){
@@ -177,15 +231,17 @@
   }
 
   async function copyWeek(){
+    if(state.loading)return;
     const source=state.shifts.filter(s=>s.status!=='canceled');if(!source.length)return AONE.toast('Diese Woche enthält keine Schichten.','warn');
     if(!confirm(`${source.length} Schichten in die nächste Woche kopieren? Bestehende Konflikte werden automatisch übersprungen.`))return;
-    setBusy(true);let created=0,failed=0;
+    setBusy(true);let created=0;const errors=[];
     try{
       for(const s of source){
         const row={org_id:state.ctx.org_id,site_id:s.site_id,employee_id:s.employee_id,title:s.title,starts_at:addDays(new Date(s.starts_at),7).toISOString(),ends_at:addDays(new Date(s.ends_at),7).toISOString(),required_qualification:s.required_qualification,status:'planned',notes:s.notes,created_by:state.user.id};
-        try{await AONE.insert('guard_shifts',row,false);created++}catch{failed++}
+        try{await checkConflict(row);await AONE.insert('guard_shifts',row,false);created++}catch(err){errors.push(`${fmtDate(new Date(row.starts_at))} · ${s.title}: ${err.message}`)}
       }
-      AONE.toast(`${created} Schichten kopiert${failed?`, ${failed} übersprungen`:''}.`);
+      if(created)state.weekStart=addDays(state.weekStart,7);
+      await refreshWeek();batchResult($('#quick-msg'),created,errors);
     }finally{setBusy(false)}
   }
 
@@ -199,11 +255,13 @@
 
   function bind(){
     $('#quick-form').addEventListener('submit',createQuick);$('#edit-form').addEventListener('submit',saveEdit);$('#site-form').addEventListener('submit',createSite);
-    document.querySelectorAll('.preset').forEach(b=>b.addEventListener('click',()=>{$('#q-start').value=b.dataset.start;$('#q-end').value=b.dataset.end}));
+    document.querySelectorAll('.preset').forEach(b=>b.addEventListener('click',()=>{$('#q-start').value=b.dataset.start;$('#q-end').value=b.dataset.end;quickPreview()}));
+    $('#quick-form').addEventListener('input',quickPreview);
+    $('#quick-form').addEventListener('change',quickPreview);
     $('#q-qual').addEventListener('change',()=>{const current=$('#q-employee').value;employeeOptionsForQual($('#q-employee'),$('#q-qual').value,current)});
     $('#e-qual').addEventListener('change',()=>{const current=$('#e-employee').value;employeeOptionsForQual($('#e-employee'),$('#e-qual').value,current)});
     $('#filter-site').addEventListener('change',render);$('#filter-employee').addEventListener('change',render);$('#show-canceled').addEventListener('change',render);
-    $('#prev-week').onclick=async()=>{state.weekStart=addDays(state.weekStart,-7);await loadWeek()};$('#next-week').onclick=async()=>{state.weekStart=addDays(state.weekStart,7);await loadWeek()};$('#today-week').onclick=async()=>{state.weekStart=startOfWeek();await loadWeek()};
+    $('#prev-week').onclick=()=>navigateWeek(addDays(state.weekStart,-7));$('#next-week').onclick=()=>navigateWeek(addDays(state.weekStart,7));$('#today-week').onclick=()=>navigateWeek(startOfWeek());
     $('#add-site').onclick=()=>{message($('#site-msg'),'');openModal('#site-modal')};$('#close-site').onclick=()=>closeModal('#site-modal');$('#close-edit').onclick=()=>closeModal('#shift-modal');$('#cancel-shift').onclick=cancelShift;$('#confirm-week').onclick=confirmWeek;$('#copy-week').onclick=copyWeek;
     $('#week-grid').addEventListener('click',e=>{const id=e.target.dataset.id;if(e.target.classList.contains('edit-shift'))openEdit(id);else if(e.target.classList.contains('copy-shift'))cloneShift(id,1);else if(e.target.classList.contains('confirm-shift'))confirmOne(id);else{const card=e.target.closest('.shift');if(card&&!e.target.closest('button'))openEdit(card.dataset.id)}});
     document.querySelectorAll('.planner-modal').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open')}));
@@ -216,7 +274,7 @@
       const session=await AONE.session();if(!session){location.replace('./admin-login.html');return}state.user=session.user;
       const ctx=await AONE.chooseContext();if(!ctx||!AONE.isManager(ctx.role)){location.replace('./admin-login.html');return}state.ctx=ctx;
       $('#org-name').textContent=ctx.org?.name||'Dienstplan';$('#who').textContent=ctx.role?AONE.roleLabel(ctx.role):'';
-      state.weekStart=startOfWeek();$('#q-date').value=localDate(new Date());bind();await loadReferences();employeeOptionsForQual($('#q-employee'),'none','');await loadWeek();
+      state.weekStart=startOfWeek();$('#q-date').value=localDate(new Date());$('#q-until').value=localDate(addDays(new Date(),27));bind();quickPreview();await loadReferences();employeeOptionsForQual($('#q-employee'),'none','');await loadWeek();
     }catch(err){message($('#planner-msg'),err.message||'Dienstplan konnte nicht geladen werden.','err')}finally{setBusy(false)}
   }
   init();
