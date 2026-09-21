@@ -1,0 +1,157 @@
+const EMP = (()=>{
+  const S={ctx:null,user:null,emp:null,sites:[],shifts:[],entries:[],breaks:[],watchbook:[],routes:[],checkpoints:[],runs:[],scans:[],courses:[],attempts:[],quals:[],leaves:[],corrections:[],documents:[],section:'today',timer:null,scanner:null};
+  const view=()=>AONE.qs('#view');
+  const siteName=id=>S.sites.find(x=>x.id===id)?.name||'Objekt';
+  const shiftForEntry=e=>S.shifts.find(x=>x.id===e.shift_id);
+  const activeEntry=()=>S.entries.find(x=>!x.clock_out_at);
+  const openBreak=()=>{const e=activeEntry();return e?S.breaks.find(b=>b.time_entry_id===e.id&&!b.ended_at):null};
+  const myUpcoming=()=>S.shifts.filter(x=>new Date(x.ends_at)>new Date(Date.now()-12*3600000)).sort((a,b)=>new Date(a.starts_at)-new Date(b.starts_at));
+  const todayShifts=()=>S.shifts.filter(x=>new Date(x.starts_at).toDateString()===new Date().toDateString());
+  const nextShift=()=>myUpcoming()[0]||null;
+
+  async function boot(){
+    AONE.loading(true,'Mitarbeiter-App wird geladen…');
+    const sess=await AONE.session(); if(!sess){location.replace('./login.html');return}
+    if(sess.user?.app_metadata?.must_change_password){sessionStorage.setItem('aone_after_password','./login.html');location.replace('./change-password.html');return}
+    S.user=sess.user; S.ctx=await AONE.chooseContext(); if(!S.ctx){AONE.signOut();location.replace('./login.html');return}
+    AONE.qs('#org-name').textContent=S.ctx.org.name; AONE.qs('#who').textContent=AONE.roleLabel(S.ctx.role);
+    AONE.qs('#logout').onclick=()=>{AONE.signOut();location.replace('./login.html')};
+    AONE.qsa('[data-section]').forEach(b=>b.onclick=()=>navigate(b.dataset.section));
+    await loadAll();
+    if(!S.emp){ view().innerHTML=`<div class="card"><h2>Kein Mitarbeiterprofil</h2><p class="muted">Dieser Zugang ist der Firma zugeordnet, besitzt aber noch kein persönliches Mitarbeiterprofil. Die Geschäftsführung kann das im Command Center einrichten.</p>${AONE.isManager(S.ctx.role)?'<a class="btn primary" href="./admin.html">Command Center öffnen</a>':''}</div>`; AONE.loading(false); return; }
+    render(); AONE.loading(false);
+  }
+
+  async function loadAll(){
+    const org=encodeURIComponent(S.ctx.org_id), uid=encodeURIComponent(S.user.id);
+    const [emps,sites,shifts,entries,breaks,watchbook,routes,checkpoints,runs,scans,courses,attempts,quals,leaves,corrections,documents]=await Promise.all([
+      AONE.table('guard_employees',`select=*&org_id=eq.${org}&user_id=eq.${uid}&limit=1`),
+      AONE.table('guard_sites',`select=id,org_id,name,address,customer_name,active,geofence_radius_m&org_id=eq.${org}&active=eq.true&order=name.asc`),
+      AONE.table('guard_shifts',`select=*&org_id=eq.${org}&order=starts_at.asc&limit=180`),
+      AONE.table('guard_time_entries',`select=*&org_id=eq.${org}&order=clock_in_at.desc&limit=120`),
+      AONE.table('guard_breaks','select=*&order=started_at.desc&limit=120'),
+      AONE.table('guard_watchbook_entries',`select=*&org_id=eq.${org}&order=occurred_at.desc&limit=100`),
+      AONE.table('guard_patrol_routes',`select=*&org_id=eq.${org}&active=eq.true&order=name.asc`),
+      AONE.table('guard_checkpoints',`select=id,org_id,route_id,name,sequence_no,preferred_method,active&org_id=eq.${org}&active=eq.true&order=sequence_no.asc`),
+      AONE.table('guard_patrol_runs',`select=*&org_id=eq.${org}&order=started_at.desc&limit=50`),
+      AONE.table('guard_patrol_scans',`select=*&org_id=eq.${org}&order=scanned_at.desc&limit=300`),
+      AONE.table('guard_courses','select=id,org_id,title,category,description,mode,points,pass_percent,published&published=eq.true&order=title.asc'),
+      AONE.table('guard_training_attempts',`select=*&org_id=eq.${org}&order=started_at.desc&limit=100`),
+      AONE.table('guard_qualifications',`select=*&org_id=eq.${org}&order=created_at.desc`),
+      AONE.table('guard_leave_requests',`select=*&org_id=eq.${org}&order=starts_on.desc&limit=50`),
+      AONE.table('guard_time_corrections',`select=*&org_id=eq.${org}&order=requested_at.desc&limit=100`),
+      AONE.table('guard_documents',`select=*&org_id=eq.${org}&order=created_at.desc&limit=100`)
+    ]);
+    [S.emp]=emps; Object.assign(S,{sites,shifts,entries,breaks,watchbook,routes,checkpoints,runs,scans,courses,attempts,quals,leaves,corrections,documents});
+  }
+
+  function navigate(section){ S.section=section; AONE.qsa('[data-section]').forEach(b=>b.classList.toggle('active',b.dataset.section===section)); render(); }
+  function render(){ stopTimer(); ({today:renderToday,schedule:renderSchedule,times:renderTimes,watchbook:renderWatchbook,wks:renderWKS,learn:renderLearn,profile:renderProfile}[S.section]||renderToday)(); }
+  function stopTimer(){ if(S.timer){clearInterval(S.timer);S.timer=null} }
+
+  function renderToday(){
+    const entry=activeEntry(), br=openBreak(), shifts=todayShifts(), next=nextShift();
+    const target=shifts.find(s=>new Date(s.ends_at)>new Date())||next;
+    view().innerHTML=`<div class="page-head"><div><h1>Heute</h1><p>${AONE.esc(S.emp.display_name)} · ${AONE.esc(S.ctx.org.name)}</p></div><span class="pill blue">${AONE.esc(S.emp.qualification_level||'Mitarbeiter')}</span></div>
+      ${entry?`<section class="clock"><div class="row between wrap"><div><div class="kicker">Dienst aktiv · ${AONE.esc(siteName(entry.site_id))}</div><div class="clock-time" id="live-clock">00:00:00</div><div class="muted">Eingestempelt ${AONE.dt(entry.clock_in_at)}</div></div><div class="row wrap"><button class="btn" id="break-btn">${br?'Pause beenden':'Pause starten'}</button><button class="btn red" id="clockout-btn">Ausstempeln</button></div></div></section>`:
+      target?`<section class="clock"><div class="kicker">${shifts.includes(target)?'Heutiger Dienst':'Nächster Dienst'}</div><div class="shift-time">${AONE.esc(siteName(target.site_id))}</div><div class="muted">${AONE.dt(target.starts_at)} – ${AONE.t(target.ends_at)} · ${AONE.esc(target.title)}</div><div style="margin-top:16px"><button class="btn green" id="clockin-btn">Einstempeln</button></div></section>`:
+      `<div class="card"><h2>Kein geplanter Dienst</h2><p class="muted">Aktuell ist keine kommende Schicht eingetragen.</p></div>`}
+      <div class="grid cols-3" style="margin-top:14px"><div class="card"><div class="kicker">Arbeitszeit diesen Monat</div><div class="stat">${monthHours().toFixed(1)} h</div></div><div class="card"><div class="kicker">Offene Urlaubs-/Krankmeldungen</div><div class="stat">${S.leaves.filter(x=>x.status==='pending').length}</div></div><div class="card"><div class="kicker">Academy XP</div><div class="stat">${S.attempts.reduce((a,x)=>a+(x.xp_earned||0),0)}</div></div></div>
+      <div class="grid cols-2" style="margin-top:14px"><div class="card"><h3>Heutige Schichten</h3>${shifts.length?shifts.map(shiftCard).join(''):'<div class="empty">Keine Schicht heute</div>'}</div><div class="card"><h3>Schnellzugriff</h3><div class="grid cols-2"><button class="btn" data-go="watchbook">Wachbuch</button><button class="btn" data-go="wks">WKS-Rundgang</button><button class="btn" data-go="learn">§34a Training</button><button class="btn" data-go="profile">Urlaub / Krank</button></div></div></div>`;
+    if(entry){startTimer(entry);AONE.qs('#clockout-btn').onclick=()=>clockOut(entry);AONE.qs('#break-btn').onclick=()=>toggleBreak(entry,br)} else if(target) AONE.qs('#clockin-btn').onclick=()=>clockIn(target);
+    AONE.qsa('[data-go]').forEach(x=>x.onclick=()=>navigate(x.dataset.go));
+  }
+  function monthHours(){ const n=new Date(), start=new Date(n.getFullYear(),n.getMonth(),1); return S.entries.filter(e=>new Date(e.clock_in_at)>=start).reduce((sum,e)=>sum+AONE.duration(e.clock_in_at,e.clock_out_at),0); }
+  function shiftCard(s){return `<div class="shift-card" style="padding:10px 0;border-bottom:1px solid var(--line)"><div><b>${AONE.esc(siteName(s.site_id))}</b><div class="muted">${AONE.dt(s.starts_at)} – ${AONE.t(s.ends_at)}</div></div><span class="pill">${AONE.esc(s.title)}</span></div>`}
+  function startTimer(entry){ const el=AONE.qs('#live-clock'); const tick=()=>{const sec=Math.floor((Date.now()-new Date(entry.clock_in_at))/1000);const h=String(Math.floor(sec/3600)).padStart(2,'0'),m=String(Math.floor(sec%3600/60)).padStart(2,'0'),s=String(sec%60).padStart(2,'0');if(el)el.textContent=`${h}:${m}:${s}`};tick();S.timer=setInterval(tick,1000); }
+  async function clockIn(shift){
+    AONE.loading(true,'Standort und Dienst werden geprüft…');
+    try{let g=null;try{g=await AONE.geolocate()}catch(e){if(!confirm(`${e.message}\n\nOhne Standortprüfung einstempeln?`))throw e}
+      const id=await AONE.rpc('guard_clock_in_geo',{p_site:shift.site_id,p_shift:shift.id,p_method:g?'app_geo':'app_manual',p_lat:g?.lat??null,p_lng:g?.lng??null,p_accuracy_m:g?.accuracy??null});
+      AONE.toast('Eingestempelt.');await loadAll();render();
+    }catch(e){AONE.toast(e.message,'err')}finally{AONE.loading(false)}
+  }
+  async function clockOut(entry){
+    if(!confirm('Dienst jetzt beenden und ausstempeln?'))return;AONE.loading(true,'Ausstempeln…');
+    try{let g=null;try{g=await AONE.geolocate()}catch{}
+      await AONE.rpc('guard_clock_out_geo',{p_entry:entry.id,p_method:g?'app_geo':'app_manual',p_lat:g?.lat??null,p_lng:g?.lng??null,p_accuracy_m:g?.accuracy??null});
+      AONE.toast('Ausgestempelt.');await loadAll();render();
+    }catch(e){AONE.toast(e.message,'err')}finally{AONE.loading(false)}
+  }
+  async function toggleBreak(entry,br){try{if(br)await AONE.rpc('guard_end_break',{p_entry:entry.id});else await AONE.rpc('guard_start_break',{p_entry:entry.id});await loadAll();render();AONE.toast(br?'Pause beendet.':'Pause gestartet.')}catch(e){AONE.toast(e.message,'err')}}
+
+  function renderSchedule(){
+    const rows=[...S.shifts].sort((a,b)=>new Date(a.starts_at)-new Date(b.starts_at));
+    view().innerHTML=`<div class="page-head"><div><h1>Dienstplan</h1><p>Deine eingeteilten Dienste</p></div></div><div class="card">${rows.length?rows.map(s=>`<div class="shift-card" style="padding:13px 0;border-bottom:1px solid var(--line)"><div><div class="kicker">${AONE.d(s.starts_at)}</div><div class="shift-time">${AONE.t(s.starts_at)} – ${AONE.t(s.ends_at)}</div><b>${AONE.esc(siteName(s.site_id))}</b><div class="muted">${AONE.esc(s.title)}${s.notes?` · ${AONE.esc(s.notes)}`:''}</div></div><span class="pill ${new Date(s.ends_at)<new Date()?'':'blue'}">${new Date(s.ends_at)<new Date()?'Erledigt':'Geplant'}</span></div>`).join(''):'<div class="empty">Noch keine Dienste</div>'}</div>`;
+  }
+
+  function localInput(v){ if(!v)return ''; const d=new Date(v), z=n=>String(n).padStart(2,'0'); return `${d.getFullYear()}-${z(d.getMonth()+1)}-${z(d.getDate())}T${z(d.getHours())}:${z(d.getMinutes())}`; }
+  function renderTimes(){
+    const rows=[...S.entries].sort((a,b)=>new Date(b.clock_in_at)-new Date(a.clock_in_at));
+    view().innerHTML=`<div class="page-head"><div><h1>Arbeitszeiten</h1><p>Deine Ein-/Ausstempelungen und Korrekturanträge</p></div></div><div class="card"><div class="table-wrap"><table class="table"><thead><tr><th>Datum</th><th>Objekt</th><th>Ein</th><th>Aus</th><th>Pause</th><th>Dauer</th><th>Status</th><th></th></tr></thead><tbody>${rows.length?rows.map(e=>{const bs=S.breaks.filter(b=>b.time_entry_id===e.id), mins=Math.round(bs.reduce((n,b)=>n+Math.max(0,(new Date(b.ended_at||Date.now())-new Date(b.started_at))/60000),0)), c=S.corrections.find(x=>x.time_entry_id===e.id&&x.status==='pending')||S.corrections.find(x=>x.time_entry_id===e.id&&x.status==='approved')||S.corrections.find(x=>x.time_entry_id===e.id&&x.status==='rejected'); const st=c?({pending:'Korrektur offen',approved:'Korrigiert',rejected:'Abgelehnt'})[c.status]:'Erfasst'; return `<tr><td>${AONE.d(e.clock_in_at)}</td><td>${AONE.esc(siteName(e.site_id))}</td><td>${AONE.t(e.clock_in_at)}</td><td>${AONE.t(e.clock_out_at)}</td><td>${mins} Min.</td><td>${AONE.duration(e.clock_in_at,e.clock_out_at).toFixed(2)} h</td><td><span class="pill ${c?.status==='pending'?'yellow':c?.status==='approved'?'green':c?.status==='rejected'?'red':''}">${st}</span></td><td>${e.clock_out_at&&!S.corrections.some(x=>x.time_entry_id===e.id&&x.status==='pending')?`<button class="btn small time-correct" data-id="${e.id}">Korrektur</button>`:''}</td></tr>`}).join(''):'<tr><td colspan="8" class="empty">Noch keine Arbeitszeiten.</td></tr>'}</tbody></table></div></div>`;
+    AONE.qsa('.time-correct').forEach(b=>b.onclick=()=>openTimeCorrection(b.dataset.id));
+  }
+  function openTimeCorrection(id){
+    const e=S.entries.find(x=>x.id===id); if(!e)return;
+    modal(`<div class="row between"><div><div class="kicker">Arbeitszeit</div><h2>Korrektur beantragen</h2></div><button class="btn small" data-close>Schließen</button></div><p class="muted">${AONE.esc(siteName(e.site_id))} · ursprünglich ${AONE.dt(e.clock_in_at)} – ${AONE.dt(e.clock_out_at)}</p><form id="correction-form"><div class="grid cols-2"><div class="field"><label>Richtig eingestempelt</label><input class="input" type="datetime-local" name="clock_in" value="${localInput(e.clock_in_at)}" required></div><div class="field"><label>Richtig ausgestempelt</label><input class="input" type="datetime-local" name="clock_out" value="${localInput(e.clock_out_at)}" required></div></div><div class="field"><label>Begründung</label><textarea class="textarea" name="reason" minlength="3" maxlength="1000" placeholder="Warum muss die Arbeitszeit korrigiert werden?" required></textarea></div><div class="notice warn">Die Änderung wird erst nach Freigabe durch Inhaber, Geschäftsführung oder Schichtleitung wirksam und im Audit-Protokoll dokumentiert.</div><button class="btn primary block" style="margin-top:12px">Antrag senden</button></form>`);
+    AONE.qs('#correction-form').onsubmit=async ev=>{ev.preventDefault();const f=new FormData(ev.currentTarget);try{const ci=new Date(String(f.get('clock_in'))),co=new Date(String(f.get('clock_out')));if(!(co>ci))throw new Error('Ausstempelzeit muss nach der Einstempelzeit liegen.');await AONE.rpc('guard_request_time_correction',{p_entry:id,p_clock_in_at:ci.toISOString(),p_clock_out_at:co.toISOString(),p_reason:String(f.get('reason')).trim()});closeModal();await loadAll();S.section='times';render();AONE.toast('Korrekturantrag wurde gesendet.')}catch(ex){AONE.toast(ex.message,'err')}};
+  }
+
+  function renderWatchbook(){
+    view().innerHTML=`<div class="page-head"><div><h1>Wachbuch</h1><p>Vorkommnisse und Schichtdokumentation</p></div><button class="btn primary" id="new-watch">+ Eintrag</button></div><div class="stack">${S.watchbook.length?S.watchbook.map(w=>`<article class="card"><div class="row between wrap"><div><span class="pill ${w.severity==='high'?'red':w.severity==='medium'?'yellow':'blue'}">${AONE.esc(w.category)}</span> <span class="muted">${AONE.dt(w.occurred_at)}</span></div><b>${AONE.esc(siteName(w.site_id))}</b></div><p style="white-space:pre-wrap">${AONE.esc(w.body)}</p></article>`).join(''):'<div class="card empty">Noch keine Wachbucheinträge von dir.</div>'}</div>`;
+    AONE.qs('#new-watch').onclick=openWatchbookForm;
+  }
+  function openWatchbookForm(){ modal(`<div class="row between"><h2>Wachbucheintrag</h2><button class="btn small" data-close>Schließen</button></div><form id="watch-form"><div class="field"><label>Objekt</label><select class="select" name="site_id" required>${S.sites.map(x=>`<option value="${x.id}">${AONE.esc(x.name)}</option>`).join('')}</select></div><div class="grid cols-2"><div class="field"><label>Kategorie</label><select class="select" name="category"><option value="routine">Routine</option><option value="incident">Vorkommnis</option><option value="alarm">Alarm</option><option value="handover">Übergabe</option><option value="technical">Technische Störung</option><option value="visitor">Besucher</option></select></div><div class="field"><label>Priorität</label><select class="select" name="severity"><option value="low">Normal</option><option value="medium">Mittel</option><option value="high">Hoch</option></select></div></div><div class="field"><label>Eintrag</label><textarea class="textarea" name="body" required maxlength="4000"></textarea></div><button class="btn primary block">Speichern</button></form>`);
+    AONE.qs('#watch-form').onsubmit=async e=>{e.preventDefault();const f=new FormData(e.currentTarget);try{await AONE.insert('guard_watchbook_entries',{org_id:S.ctx.org_id,site_id:f.get('site_id'),employee_id:S.emp.id,created_by:S.user.id,category:f.get('category'),severity:f.get('severity'),body:String(f.get('body')).trim()});closeModal();await loadAll();render();AONE.toast('Wachbucheintrag gespeichert.')}catch(ex){AONE.toast(ex.message,'err')}};
+  }
+
+  function activeRun(){return S.runs.find(r=>r.status==='active'&&!r.completed_at)}
+  function renderWKS(){
+    const run=activeRun();
+    let activeHtml='';
+    if(run){const route=S.routes.find(x=>x.id===run.route_id), cps=S.checkpoints.filter(x=>x.route_id===run.route_id), scans=S.scans.filter(x=>x.patrol_run_id===run.id), scanned=new Set(scans.map(x=>x.checkpoint_id));activeHtml=`<div class="card"><div class="row between wrap"><div><div class="kicker">Aktiver Rundgang</div><h2>${AONE.esc(route?.name||'Rundgang')}</h2><div class="muted">Begonnen ${AONE.dt(run.started_at)} · ${scanned.size}/${cps.length} Kontrollpunkte</div></div><button class="btn primary" id="scan-btn">QR scannen</button></div><div class="progress" style="margin:14px 0"><i style="width:${cps.length?Math.round(scanned.size/cps.length*100):0}%"></i></div>${cps.map(c=>`<div class="row between" style="padding:9px 0;border-bottom:1px solid var(--line)"><span>${c.sequence_no}. ${AONE.esc(c.name)}</span><span class="pill ${scanned.has(c.id)?'green':''}">${scanned.has(c.id)?'Erledigt':'Offen'}</span></div>`).join('')}<div class="row wrap" style="margin-top:14px"><button class="btn" id="manual-token">Code eingeben</button>${scanned.size>=cps.length?'<button class="btn green" id="finish-run">Rundgang abschließen</button>':''}</div></div>`}
+    view().innerHTML=`<div class="page-head"><div><h1>WKS</h1><p>Wächterkontrollsystem · QR/Checkpoint-Rundgänge</p></div></div>${activeHtml}<div class="grid cols-2" style="margin-top:14px">${S.routes.map(r=>{const cps=S.checkpoints.filter(c=>c.route_id===r.id);return `<div class="card"><div class="kicker">${AONE.esc(siteName(r.site_id))}</div><h3>${AONE.esc(r.name)}</h3><p class="muted">${cps.length} Kontrollpunkte${r.expected_duration_min?` · ca. ${r.expected_duration_min} Min.`:''}</p><button class="btn ${run?'':'primary'} start-route" data-route="${r.id}" ${run?'disabled':''}>Rundgang starten</button></div>`}).join('')||'<div class="card empty">Keine Rundgänge eingerichtet.</div>'}</div>`;
+    AONE.qsa('.start-route').forEach(b=>b.onclick=()=>startRun(b.dataset.route));
+    if(run){AONE.qs('#scan-btn').onclick=()=>openScanner(run);AONE.qs('#manual-token').onclick=()=>manualScan(run);if(AONE.qs('#finish-run'))AONE.qs('#finish-run').onclick=()=>finishRun(run)}
+  }
+  async function startRun(routeId){try{const route=S.routes.find(x=>x.id===routeId);const shift=nextShift();const rows=await AONE.insert('guard_patrol_runs',{org_id:S.ctx.org_id,route_id:routeId,employee_id:S.emp.id,shift_id:shift?.id||null,status:'active'});await loadAll();render();AONE.toast(`Rundgang „${route?.name||''}“ gestartet.`)}catch(e){AONE.toast(e.message,'err')}}
+  function tokenFromPayload(v){v=String(v||'').trim();return v.startsWith('AONE-GUARD:')?v.slice('AONE-GUARD:'.length):v}
+  async function submitScan(run,raw){const token=tokenFromPayload(raw);if(!token)return;try{let g=null;try{g=await AONE.geolocate()}catch{}const res=await AONE.rpc('guard_scan_checkpoint',{p_run:run.id,p_token:token,p_method:'qr',p_lat:g?.lat??null,p_lng:g?.lng??null,p_accuracy_m:g?.accuracy??null});AONE.toast(res?.checkpoint_name?`${res.checkpoint_name} erfasst.`:'Kontrollpunkt erfasst.');await loadAll();closeModal();render()}catch(e){AONE.toast(e.message,'err')}}
+  function manualScan(run){const v=prompt('Checkpoint-Code oder QR-Inhalt eingeben:');if(v)submitScan(run,v)}
+  async function finishRun(run){try{await AONE.update('guard_patrol_runs',`id=eq.${run.id}`,{completed_at:new Date().toISOString(),status:'completed'});await loadAll();render();AONE.toast('Rundgang abgeschlossen.')}catch(e){AONE.toast(e.message,'err')}}
+  async function openScanner(run){
+    modal(`<div class="row between"><h2>QR scannen</h2><button class="btn small" data-close>Schließen</button></div><div class="video-wrap"><video id="scan-video" autoplay playsinline muted></video><div class="scan-line"></div></div><p class="helper">Kamera auf den A ONE Guard Kontrollpunkt richten.</p><button class="btn block" id="scan-fallback">Code manuell eingeben</button>`);
+    AONE.qs('#scan-fallback').onclick=()=>manualScan(run);
+    if(!('BarcodeDetector' in window)){AONE.toast('Automatischer QR-Scanner wird von diesem Browser nicht unterstützt. Nutze „Code manuell eingeben“.','warn');return}
+    try{const stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'}}});S.scanner=stream;const video=AONE.qs('#scan-video');video.srcObject=stream;const detector=new BarcodeDetector({formats:['qr_code']});let running=true;const loop=async()=>{if(!running||!document.body.contains(video))return stopScanner();try{const codes=await detector.detect(video);if(codes.length){running=false;await submitScan(run,codes[0].rawValue);return}}catch{}requestAnimationFrame(loop)};video.onloadeddata=()=>loop()}catch(e){AONE.toast('Kamera konnte nicht geöffnet werden.','err')}
+  }
+  function stopScanner(){if(S.scanner){S.scanner.getTracks().forEach(t=>t.stop());S.scanner=null}}
+
+  function renderLearn(){
+    view().innerHTML=`<div class="page-head"><div><h1>Guard Academy</h1><p>Lernen wie bei Duolingo, aber für den Sicherheitsdienst.</p></div><span class="pill blue">${S.attempts.reduce((a,x)=>a+(x.xp_earned||0),0)} XP</span></div><div class="grid cols-2">${S.courses.map(c=>{const last=S.attempts.find(a=>a.course_id===c.id&&a.completed_at);return `<article class="course"><div class="row between"><span class="pill">${AONE.esc(c.category)}</span><b>+${c.points} XP</b></div><h3>${AONE.esc(c.title)}</h3><p class="muted">${AONE.esc(c.description||'')}</p>${last?`<div class="row between"><span class="muted">Letztes Ergebnis</span><span class="pill ${last.passed?'green':'red'}">${last.score_percent??0}%</span></div>`:''}<button class="btn primary block course-start" data-course="${c.id}" style="margin-top:12px">Training starten</button></article>`}).join('')||'<div class="card empty">Keine Kurse verfügbar.</div>'}</div>`;
+    AONE.qsa('.course-start').forEach(b=>b.onclick=()=>startCourse(b.dataset.course));
+  }
+  async function startCourse(courseId){
+    try{AONE.loading(true,'Prüfung wird vorbereitet…');const qs=await AONE.table('guard_question_prompts',`select=id,course_id,prompt,options,multiple_choice,module,sort_order&course_id=eq.${courseId}&order=sort_order.asc`);if(!qs.length)throw new Error('Für diesen Kurs sind noch keine Fragen hinterlegt.');const rows=await AONE.insert('guard_training_attempts',{org_id:S.ctx.org_id,employee_id:S.emp.id,course_id:courseId});const attempt=rows[0];AONE.loading(false);runQuiz(attempt,qs,0,[])}catch(e){AONE.loading(false);AONE.toast(e.message,'err')}
+  }
+  function runQuiz(attempt,questions,index,results){
+    const q=questions[index], options=Array.isArray(q.options)?q.options:[]; const type=q.multiple_choice?'checkbox':'radio';
+    modal(`<div class="row between"><div><div class="kicker">Frage ${index+1} / ${questions.length}</div><h2>${AONE.esc(q.module||'Training')}</h2></div><button class="btn small" data-close>Abbrechen</button></div><div class="progress"><i style="width:${Math.round(index/questions.length*100)}%"></i></div><div class="question" style="margin-top:18px">${AONE.esc(q.prompt)}</div><form id="quiz-form">${options.map((o,i)=>`<label class="option"><input type="${type}" name="choice" value="${i}"><span>${AONE.esc(o)}</span></label>`).join('')}<button class="btn primary block" style="margin-top:14px">Antwort prüfen</button></form><div id="quiz-feedback"></div>`);
+    AONE.qs('#quiz-form').onsubmit=async e=>{e.preventDefault();const selected=[...e.currentTarget.querySelectorAll('input[name=choice]:checked')].map(x=>Number(x.value));if(!selected.length)return AONE.toast('Bitte eine Antwort auswählen.','warn');try{const r=await AONE.rpc('guard_submit_answer',{p_attempt:attempt.id,p_question:q.id,p_selected:selected});results.push(r);const fb=AONE.qs('#quiz-feedback');fb.innerHTML=`<div class="notice ${r.correct?'':'warn'}" style="margin-top:14px"><b>${r.correct?'Richtig':'Nicht richtig'}</b><div style="margin-top:5px">${AONE.esc(r.explanation||'')}</div></div><button class="btn ${index+1<questions.length?'primary':'green'} block" id="quiz-next" style="margin-top:10px">${index+1<questions.length?'Nächste Frage':'Auswertung'}</button>`;e.currentTarget.querySelectorAll('input,button').forEach(x=>x.disabled=true);AONE.qs('#quiz-next').onclick=()=>index+1<questions.length?runQuiz(attempt,questions,index+1,results):finishQuiz(attempt)}catch(ex){AONE.toast(ex.message,'err')}};
+  }
+  async function finishQuiz(attempt){try{const r=await AONE.rpc('guard_finish_attempt',{p_attempt:attempt.id});modal(`<div class="kicker">Ergebnis</div><h2>${r.passed?'Bestanden':'Noch nicht bestanden'}</h2><div class="stat">${r.score_percent}%</div><p class="muted">${r.passed?`+${r.xp_earned} XP erhalten.`:'Wiederhole den Kurs und trainiere die unsicheren Themen.'}</p><button class="btn primary block" id="quiz-done">Zur Academy</button>`);AONE.qs('#quiz-done').onclick=async()=>{closeModal();await loadAll();render()}}catch(e){AONE.toast(e.message,'err')}}
+
+  function renderProfile(){
+    const soon=Date.now()+60*86400000,expiring=S.quals.filter(q=>q.valid_until&&new Date(q.valid_until).getTime()<=soon),docs=S.documents.filter(d=>!d.employee_id||d.employee_id===S.emp.id);
+    view().innerHTML=`<div class="page-head"><div><h1>Mein Profil</h1><p>Persönliche Daten, Qualifikationen, Dokumente und Anträge</p></div></div>${expiring.length?`<div class="notice warn" style="margin-bottom:14px"><b>${expiring.length} Qualifikation(en) abgelaufen oder bald fällig.</b></div>`:''}<div class="grid cols-2"><div class="card"><h3>${AONE.esc(S.emp.display_name)}</h3><div class="stack"><div><span class="muted">Mitarbeiternr.</span><br><b>${AONE.esc(S.emp.employee_no||'—')}</b></div><div><span class="muted">Bewacher-ID</span><br><b>${AONE.esc(S.emp.bewacher_id||'—')}</b></div><div><span class="muted">Qualifikation</span><br><b>${AONE.esc(S.emp.qualification_level||'—')}</b></div><div><span class="muted">Telefon</span><br><b>${AONE.esc(S.emp.phone||'—')}</b></div></div><button class="btn" id="pw-btn" style="margin-top:14px">Passwort ändern</button></div><div class="card"><div class="row between"><h3>Urlaub / Krankheit</h3><button class="btn small primary" id="leave-btn">+ Antrag</button></div>${S.leaves.length?S.leaves.slice(0,8).map(l=>`<div class="row between" style="padding:9px 0;border-bottom:1px solid var(--line)"><div><b>${l.kind==='sick'?'Krankmeldung':'Urlaub'}</b><div class="muted">${AONE.d(l.starts_on)} – ${AONE.d(l.ends_on)}</div></div><span class="pill ${l.status==='approved'?'green':l.status==='rejected'?'red':'yellow'}">${AONE.esc(l.status)}</span></div>`).join(''):'<div class="empty">Keine Anträge</div>'}</div></div><div class="card" style="margin-top:14px"><h3>Qualifikationen</h3>${S.quals.length?S.quals.map(q=>{const expired=q.valid_until&&new Date(q.valid_until)<new Date(),soonDue=q.valid_until&&new Date(q.valid_until).getTime()<=soon;return `<div class="row between" style="padding:9px 0;border-bottom:1px solid var(--line)"><div><b>${AONE.esc(q.kind)}</b><div class="muted">${AONE.esc(q.issuer||'')} ${q.reference_no?`· ${AONE.esc(q.reference_no)}`:''}</div></div><span class="pill ${expired?'red':soonDue?'yellow':'green'}">${q.valid_until?`bis ${AONE.d(q.valid_until)}`:'ohne Ablauf'}</span></div>`}).join(''):'<div class="empty">Keine Qualifikationen hinterlegt.</div>'}</div><div class="card" style="margin-top:14px"><h3>Meine Dokumente</h3>${docs.length?docs.map(d=>`<div class="row between wrap" style="padding:9px 0;border-bottom:1px solid var(--line)"><div><b>${AONE.esc(d.title)}</b><div class="muted">${AONE.esc(d.category)}${d.valid_until?' · gültig bis '+AONE.d(d.valid_until):''}</div></div>${d.storage_path?`<button class="btn small doc-open" data-id="${d.id}">Öffnen</button>`:''}</div>`).join(''):'<div class="empty">Keine Dokumente hinterlegt.</div>'}</div>`;
+    AONE.qs('#leave-btn').onclick=openLeave;AONE.qs('#pw-btn').onclick=openPassword;AONE.qsa('.doc-open').forEach(b=>b.onclick=()=>openMyDocument(b.dataset.id));
+  }
+  async function openMyDocument(id){const d=S.documents.find(x=>x.id===id);if(!d?.storage_path)return;try{AONE.loading(true,'Dokument wird geladen…');await AONE.openStorage('guard-documents',d.storage_path,d.title);AONE.loading(false)}catch(ex){AONE.loading(false);AONE.toast(ex.message,'err')}}
+  function openLeave(){modal(`<div class="row between"><h2>Antrag einreichen</h2><button class="btn small" data-close>Schließen</button></div><form id="leave-form"><div class="field"><label>Art</label><select class="select" name="kind"><option value="vacation">Urlaub</option><option value="sick">Krankmeldung</option></select></div><div class="grid cols-2"><div class="field"><label>Von</label><input class="input" type="date" name="starts_on" required></div><div class="field"><label>Bis</label><input class="input" type="date" name="ends_on" required></div></div><div class="field"><label>Notiz</label><textarea class="textarea" name="note"></textarea></div><button class="btn primary block">Einreichen</button></form>`);AONE.qs('#leave-form').onsubmit=async e=>{e.preventDefault();const f=new FormData(e.currentTarget);try{await AONE.insert('guard_leave_requests',{org_id:S.ctx.org_id,employee_id:S.emp.id,kind:f.get('kind'),starts_on:f.get('starts_on'),ends_on:f.get('ends_on'),note:String(f.get('note')||'')||null,status:'pending'});closeModal();await loadAll();render();AONE.toast('Antrag eingereicht.')}catch(ex){AONE.toast(ex.message,'err')}}}
+  function openPassword(){modal(`<div class="row between"><h2>Passwort ändern</h2><button class="btn small" data-close>Schließen</button></div><form id="pw-form"><div class="field"><label>Neues Passwort</label><input class="input" type="password" name="p1" minlength="12" required></div><div class="field"><label>Wiederholen</label><input class="input" type="password" name="p2" minlength="12" required></div><button class="btn primary block">Passwort speichern</button></form>`);AONE.qs('#pw-form').onsubmit=async e=>{e.preventDefault();const f=new FormData(e.currentTarget),p1=String(f.get('p1')),p2=String(f.get('p2'));if(p1!==p2)return AONE.toast('Passwörter stimmen nicht überein.','err');try{await AONE.updatePassword(p1);closeModal();AONE.toast('Passwort geändert.')}catch(ex){AONE.toast(ex.message,'err')}}}
+
+  function modal(html){stopScanner();AONE.qs('#modal').innerHTML=html;AONE.qs('#modal-back').classList.add('open');AONE.qsa('[data-close]',AONE.qs('#modal')).forEach(b=>b.onclick=closeModal);AONE.qs('#modal-back').onclick=e=>{if(e.target.id==='modal-back')closeModal()}}
+  function closeModal(){stopScanner();AONE.qs('#modal-back').classList.remove('open');AONE.qs('#modal').innerHTML=''}
+  return {boot};
+})();
+EMP.boot().catch(e=>{AONE.loading(false);AONE.toast(e.message||String(e),'err')});

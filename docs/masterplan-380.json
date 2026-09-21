@@ -1,0 +1,3433 @@
+{
+  "source": "A_ONE_Guard_Masterplan_380_Punkte(2).pdf",
+  "review_date": "2026-09-21",
+  "note": "Keine Produktionsfreigabe. Status vorhandener Module ist konservativ und nicht als abgeschlossen zu werten.",
+  "counts": {
+    "implementiert_getestet": 13,
+    "offen": 64,
+    "teilweise": 17,
+    "vorhanden_ungeprueft": 286
+  },
+  "requirements": [
+    {
+      "id": 1,
+      "section": "A. Basis, Architektur und Core System",
+      "title": "Multi-Tenant-System",
+      "requirement": "Jedes Unternehmen erhält einen logisch getrennten Mandanten mit eigenen Benutzern, Rollen, Objekten, Dokumenten und Einstellungen.",
+      "status": "teilweise",
+      "evidence": "core.js, sw.js",
+      "next_step": "Mandantenbezüge für Aufgaben, Qualitätsaudits und Formulare serverseitig geprüft; vollständige RLS-Rollenmatrix noch offen."
+    },
+    {
+      "id": 2,
+      "section": "A. Basis, Architektur und Core System",
+      "title": "Rollen- und Berechtigungssystem",
+      "requirement": "Rollen wie Owner, Admin, Geschäftsführung, Regionalleitung, Objektleitung, Dispatcher, HR, Finance, Auditor, Kunde und Mitarbeiter; Rechte granular steuerbar.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "core.js, sw.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 3,
+      "section": "A. Basis, Architektur und Core System",
+      "title": "Login und Account-System",
+      "requirement": "Registrierung, Login, Passwortänderung, Passwort vergessen, temporäre Passwörter, Pflicht-Passwortwechsel und Session-Verwaltung.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "core.js, sw.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 4,
+      "section": "A. Basis, Architektur und Core System",
+      "title": "Supabase Backend",
+      "requirement": "Authentifizierung, Datenbank, Storage, RLS, Echtzeitdaten, API und Auditinformationen als zentrale technische Basis.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "core.js, sw.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 5,
+      "section": "A. Basis, Architektur und Core System",
+      "title": "Row Level Security",
+      "requirement": "Jeder Datensatz wird gegen Mandant, Rolle und Nutzer geprüft; keine unberechtigte Einsicht in fremde Daten.",
+      "status": "teilweise",
+      "evidence": "core.js, sw.js",
+      "next_step": "RLS vorhanden; gezielte Negativtests bestehen. Nicht alle Tabellen und Rollen wurden end-to-end geprüft."
+    },
+    {
+      "id": 6,
+      "section": "A. Basis, Architektur und Core System",
+      "title": "Audit Log",
+      "requirement": "Wer, wann, was geändert hat, inklusive vorherigem und neuem Wert sowie optionalem Änderungsgrund.",
+      "status": "teilweise",
+      "evidence": "core.js, sw.js",
+      "next_step": "Audit-Trigger für neue Module ergänzt; Vollständigkeit über alle Änderungen noch zu prüfen."
+    },
+    {
+      "id": 7,
+      "section": "A. Basis, Architektur und Core System",
+      "title": "PWA",
+      "requirement": "Installierbare Progressive Web App für schnellen Rollout ohne klassische App-Store-Abhängigkeit.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "core.js, sw.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 8,
+      "section": "A. Basis, Architektur und Core System",
+      "title": "Mobile- und Desktop-Nutzung",
+      "requirement": "Management mit Desktop-Fokus; Mitarbeiter mit stark vereinfachter Mobile-First-Oberfläche.",
+      "status": "teilweise",
+      "evidence": "core.js, sw.js",
+      "next_step": "Neue Module und Dienstplan bei 390 px geprüft; weitere Geräte und vorhandene Module offen."
+    },
+    {
+      "id": 9,
+      "section": "A. Basis, Architektur und Core System",
+      "title": "Vercel Deployment",
+      "requirement": "Skalierbares Deployment für Anwendung und Website mit schneller Release-Pipeline.",
+      "status": "offen",
+      "evidence": "core.js, sw.js",
+      "next_step": "Vollständige Umsetzung bzw. externe Konfiguration und Abnahme fehlen oder sind nicht nachgewiesen."
+    },
+    {
+      "id": 10,
+      "section": "A. Basis, Architektur und Core System",
+      "title": "Stripe Billing",
+      "requirement": "Abos, Zahlungsmethoden, Tarifwechsel, Status, Kündigungen und SaaS-Abrechnung.",
+      "status": "offen",
+      "evidence": "core.js, sw.js",
+      "next_step": "Vollständige Umsetzung bzw. externe Konfiguration und Abnahme fehlen oder sind nicht nachgewiesen."
+    },
+    {
+      "id": 11,
+      "section": "A. Basis, Architektur und Core System",
+      "title": "Testphase",
+      "requirement": "Standardkunden erhalten z. B. 14 Tage Testphase; Pilot- und Enterprise-Kunden individuelle Modelle.",
+      "status": "offen",
+      "evidence": "core.js, sw.js",
+      "next_step": "Vollständige Umsetzung bzw. externe Konfiguration und Abnahme fehlen oder sind nicht nachgewiesen."
+    },
+    {
+      "id": 12,
+      "section": "B. Mitarbeiterverwaltung",
+      "title": "Mitarbeiter anlegen",
+      "requirement": "Name, Personalnummer, E-Mail, Telefon, Eintritt, Austritt und Status.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "mitarbeiter.js, personalakte.js, compliance.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 13,
+      "section": "B. Mitarbeiterverwaltung",
+      "title": "Bewacher-ID",
+      "requirement": "Bewacher-ID direkt in der digitalen Personalakte verwalten.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "mitarbeiter.js, personalakte.js, compliance.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 14,
+      "section": "B. Mitarbeiterverwaltung",
+      "title": "Qualifikationslevel",
+      "requirement": "Unterrichtung, Sachkunde und weitere Qualifikationen strukturiert abbilden.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "mitarbeiter.js, personalakte.js, compliance.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 15,
+      "section": "B. Mitarbeiterverwaltung",
+      "title": "Stundenlohn",
+      "requirement": "Interne Lohndaten als Grundlage für Kalkulation und Payroll Preparation.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "mitarbeiter.js, personalakte.js, compliance.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 16,
+      "section": "B. Mitarbeiterverwaltung",
+      "title": "Urlaubstage",
+      "requirement": "Urlaubsanspruch, Verbrauch und Resturlaub verwalten.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "mitarbeiter.js, personalakte.js, compliance.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 17,
+      "section": "B. Mitarbeiterverwaltung",
+      "title": "Mitarbeiterimport",
+      "requirement": "Bestehende Personalbestände schnell übernehmen.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "mitarbeiter.js, personalakte.js, compliance.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 18,
+      "section": "B. Mitarbeiterverwaltung",
+      "title": "Excel-, XLSX- und CSV-Import",
+      "requirement": "Importassistent mit Vorschau, Spalten-Mapping, Fehlerprüfung und Validierung.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "mitarbeiter.js, personalakte.js, compliance.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 19,
+      "section": "B. Mitarbeiterverwaltung",
+      "title": "Temporäre Passwörter",
+      "requirement": "Automatisch erzeugbare Erstzugänge für neue Nutzer.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "mitarbeiter.js, personalakte.js, compliance.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 20,
+      "section": "B. Mitarbeiterverwaltung",
+      "title": "Pflicht-Passwortwechsel",
+      "requirement": "Erstpasswort muss bei der ersten Anmeldung geändert werden.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "mitarbeiter.js, personalakte.js, compliance.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 21,
+      "section": "B. Mitarbeiterverwaltung",
+      "title": "Digitale Personalakte",
+      "requirement": "Arbeitsvertrag, Ausweis, Aufenthaltstitel, Bewacherregister, §34a, Sachkunde, Führerschein, Erste Hilfe, Brandschutz, Waffensachkunde und Zertifikate.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "mitarbeiter.js, personalakte.js, compliance.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 22,
+      "section": "B. Mitarbeiterverwaltung",
+      "title": "Ablaufdaten",
+      "requirement": "Dokumente und Qualifikationen können mit Ablaufdatum geführt werden.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "mitarbeiter.js, personalakte.js, compliance.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 23,
+      "section": "B. Mitarbeiterverwaltung",
+      "title": "Automatische Erinnerungen",
+      "requirement": "Warnungen vor Dokumentablauf, Qualifikationsablauf, Unterweisungsfrist und Vertragsende.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "mitarbeiter.js, personalakte.js, compliance.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 24,
+      "section": "B. Mitarbeiterverwaltung",
+      "title": "Qualifikationsmatrix",
+      "requirement": "Unternehmensweite Übersicht über vorhandene, fehlende und bald auslaufende Qualifikationen.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "mitarbeiter.js, personalakte.js, compliance.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 25,
+      "section": "C. Dienstplanung",
+      "title": "Wochenansicht",
+      "requirement": "Dienstplanung nach Kalenderwoche.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "dienstplan.js, dienstausch-admin.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 26,
+      "section": "C. Dienstplanung",
+      "title": "Objekt auswählen",
+      "requirement": "Jede Schicht wird einem Objekt zugeordnet.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "dienstplan.js, dienstausch-admin.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 27,
+      "section": "C. Dienstplanung",
+      "title": "Mitarbeiter auswählen",
+      "requirement": "Schicht direkt einem Mitarbeiter zuweisen.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "dienstplan.js, dienstausch-admin.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 28,
+      "section": "C. Dienstplanung",
+      "title": "Datum und Uhrzeit",
+      "requirement": "Start, Ende und Datum frei definierbar.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "dienstplan.js, dienstausch-admin.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 29,
+      "section": "C. Dienstplanung",
+      "title": "Schnellzeiten",
+      "requirement": "Vordefinierte Zeiten wie 06-14, 08-16, 12-20, 14-22 und 22-06.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "dienstplan.js, dienstausch-admin.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 30,
+      "section": "C. Dienstplanung",
+      "title": "Mehrtagserstellung",
+      "requirement": "Schichten für 1, 5 oder 7 Tage in einem Schritt erzeugen.",
+      "status": "implementiert_getestet",
+      "evidence": "tests/dienstplan.browser.cjs",
+      "next_step": "Code-/Datenbanktests bestanden; Abnahme im veröffentlichten Frontend steht aus. Browsertests verwenden simulierte Backendantworten."
+    },
+    {
+      "id": 31,
+      "section": "C. Dienstplanung",
+      "title": "Unbesetzte Schichten",
+      "requirement": "Dienste zunächst ohne Mitarbeiter erstellen und später besetzen.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "dienstplan.js, dienstausch-admin.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 32,
+      "section": "C. Dienstplanung",
+      "title": "Qualifikationsanforderung",
+      "requirement": "Erforderliche Qualifikation direkt an der Schicht hinterlegen.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "dienstplan.js, dienstausch-admin.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 33,
+      "section": "C. Dienstplanung",
+      "title": "Schicht bearbeiten",
+      "requirement": "Bestehende Schichten nachträglich anpassen.",
+      "status": "implementiert_getestet",
+      "evidence": "tests/dienstplan.browser.cjs",
+      "next_step": "Code-/Datenbanktests bestanden; Abnahme im veröffentlichten Frontend steht aus. Browsertests verwenden simulierte Backendantworten."
+    },
+    {
+      "id": 34,
+      "section": "C. Dienstplanung",
+      "title": "Schicht stornieren",
+      "requirement": "Storno mit Grund und Audit Trail.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "dienstplan.js, dienstausch-admin.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 35,
+      "section": "C. Dienstplanung",
+      "title": "Schicht kopieren",
+      "requirement": "Bestehenden Dienst duplizieren.",
+      "status": "implementiert_getestet",
+      "evidence": "tests/dienstplan.browser.cjs",
+      "next_step": "Code-/Datenbanktests bestanden; Abnahme im veröffentlichten Frontend steht aus. Browsertests verwenden simulierte Backendantworten."
+    },
+    {
+      "id": 36,
+      "section": "C. Dienstplanung",
+      "title": "Schicht verschieben",
+      "requirement": "Schicht auf anderes Datum verschieben, z. B. +1 Tag.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "dienstplan.js, dienstausch-admin.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 37,
+      "section": "C. Dienstplanung",
+      "title": "Woche kopieren",
+      "requirement": "Gesamte Wochenplanung auf Folgewochen übertragen.",
+      "status": "implementiert_getestet",
+      "evidence": "tests/dienstplan.browser.cjs",
+      "next_step": "Code-/Datenbanktests bestanden; Abnahme im veröffentlichten Frontend steht aus. Browsertests verwenden simulierte Backendantworten."
+    },
+    {
+      "id": 38,
+      "section": "C. Dienstplanung",
+      "title": "Wochenfreigabe",
+      "requirement": "Plan nach Prüfung veröffentlichen.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "dienstplan.js, dienstausch-admin.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 39,
+      "section": "C. Dienstplanung",
+      "title": "Filter nach Objekt",
+      "requirement": "Nur relevante Objekte anzeigen.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "dienstplan.js, dienstausch-admin.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 40,
+      "section": "C. Dienstplanung",
+      "title": "Filter nach Mitarbeiter",
+      "requirement": "Dienstplan eines einzelnen Mitarbeiters anzeigen.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "dienstplan.js, dienstausch-admin.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 41,
+      "section": "C. Dienstplanung",
+      "title": "Gesamtstunden",
+      "requirement": "Geplante Stunden automatisch summieren.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "dienstplan.js, dienstausch-admin.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 42,
+      "section": "C. Dienstplanung",
+      "title": "Unbesetzte Dienste",
+      "requirement": "Zentrale Übersicht aller offenen Schichten.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "dienstplan.js, dienstausch-admin.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 43,
+      "section": "C. Dienstplanung",
+      "title": "Überschneidungsprüfung",
+      "requirement": "Doppelplanung desselben Mitarbeiters verhindern.",
+      "status": "implementiert_getestet",
+      "evidence": "tests/dienstplan.browser.cjs, tests/backend-integrity.sql",
+      "next_step": "Code-/Datenbanktests bestanden; Abnahme im veröffentlichten Frontend steht aus. Browsertests verwenden simulierte Backendantworten."
+    },
+    {
+      "id": 44,
+      "section": "C. Dienstplanung",
+      "title": "Drag & Drop",
+      "requirement": "Schichten schnell zwischen Tagen, Objekten und Mitarbeitern verschieben.",
+      "status": "offen",
+      "evidence": "dienstplan.js, dienstausch-admin.js",
+      "next_step": "Vollständige Umsetzung bzw. externe Konfiguration und Abnahme fehlen oder sind nicht nachgewiesen."
+    },
+    {
+      "id": 45,
+      "section": "C. Dienstplanung",
+      "title": "Monatsansicht",
+      "requirement": "Planung auf Monatsbasis.",
+      "status": "offen",
+      "evidence": "dienstplan.js, dienstausch-admin.js",
+      "next_step": "Vollständige Umsetzung bzw. externe Konfiguration und Abnahme fehlen oder sind nicht nachgewiesen."
+    },
+    {
+      "id": 46,
+      "section": "C. Dienstplanung",
+      "title": "Tagesansicht",
+      "requirement": "Detailansicht eines einzelnen Tages.",
+      "status": "offen",
+      "evidence": "dienstplan.js, dienstausch-admin.js",
+      "next_step": "Vollständige Umsetzung bzw. externe Konfiguration und Abnahme fehlen oder sind nicht nachgewiesen."
+    },
+    {
+      "id": 47,
+      "section": "C. Dienstplanung",
+      "title": "Mitarbeiterverfügbarkeit",
+      "requirement": "Verfügbarkeiten berücksichtigen.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "dienstplan.js, dienstausch-admin.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 48,
+      "section": "C. Dienstplanung",
+      "title": "Wunschfrei",
+      "requirement": "Wünsche und Sperrtage von Mitarbeitern einbeziehen.",
+      "status": "offen",
+      "evidence": "dienstplan.js, dienstausch-admin.js",
+      "next_step": "Vollständige Umsetzung bzw. externe Konfiguration und Abnahme fehlen oder sind nicht nachgewiesen."
+    },
+    {
+      "id": 49,
+      "section": "C. Dienstplanung",
+      "title": "Urlaub und Krankheit",
+      "requirement": "Abwesenheiten blockieren die Planung.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "dienstplan.js, dienstausch-admin.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 50,
+      "section": "C. Dienstplanung",
+      "title": "Überstunden",
+      "requirement": "Erwartete Mehrarbeit sichtbar machen.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "dienstplan.js, dienstausch-admin.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 51,
+      "section": "C. Dienstplanung",
+      "title": "Ruhezeiten",
+      "requirement": "Gesetzliche und interne Ruhezeiten automatisch prüfen.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "dienstplan.js, dienstausch-admin.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 52,
+      "section": "C. Dienstplanung",
+      "title": "Automatische Qualifikationsprüfung",
+      "requirement": "Nur einsatzfähige Mitarbeiter vorschlagen.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "dienstplan.js, dienstausch-admin.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 53,
+      "section": "C. Dienstplanung",
+      "title": "Objektanforderungen",
+      "requirement": "Objektspezifische Voraussetzungen berücksichtigen.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "dienstplan.js, dienstausch-admin.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 54,
+      "section": "C. Dienstplanung",
+      "title": "Mindestbesetzung",
+      "requirement": "Sollbesetzung pro Objekt überwachen.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "dienstplan.js, dienstausch-admin.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 55,
+      "section": "C. Dienstplanung",
+      "title": "Sollstunden und Iststunden",
+      "requirement": "Planung gegen tatsächliche Arbeitszeit vergleichen.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "dienstplan.js, dienstausch-admin.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 56,
+      "section": "C. Dienstplanung",
+      "title": "Schichttausch",
+      "requirement": "Mitarbeiter können Tauschvorgänge beantragen.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "dienstplan.js, dienstausch-admin.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 57,
+      "section": "C. Dienstplanung",
+      "title": "Offene Schichten",
+      "requirement": "Freie Dienste intern ausschreiben.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "dienstplan.js, dienstausch-admin.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 58,
+      "section": "C. Dienstplanung",
+      "title": "Schichtannahme",
+      "requirement": "Geeignete Mitarbeiter können offene Schichten annehmen.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "dienstplan.js, dienstausch-admin.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 59,
+      "section": "C. Dienstplanung",
+      "title": "Automatische Benachrichtigung",
+      "requirement": "Push-Mitteilungen bei neuen oder geänderten Schichten.",
+      "status": "offen",
+      "evidence": "dienstplan.js, dienstausch-admin.js",
+      "next_step": "Vollständige Umsetzung bzw. externe Konfiguration und Abnahme fehlen oder sind nicht nachgewiesen."
+    },
+    {
+      "id": 60,
+      "section": "C. Dienstplanung",
+      "title": "AI-Dienstplanung",
+      "requirement": "Passende Mitarbeiter anhand von Qualifikation, Verfügbarkeit, Entfernung, Arbeitszeit, Überstunden und Objektkenntnis vorschlagen.",
+      "status": "offen",
+      "evidence": "dienstplan.js, dienstausch-admin.js",
+      "next_step": "Vollständige Umsetzung bzw. externe Konfiguration und Abnahme fehlen oder sind nicht nachgewiesen."
+    },
+    {
+      "id": 61,
+      "section": "D. Zeiterfassung",
+      "title": "Einstempeln",
+      "requirement": "Arbeitsbeginn digital erfassen.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "employee.js, arbeitszeiten.js, payroll.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 62,
+      "section": "D. Zeiterfassung",
+      "title": "Ausstempeln",
+      "requirement": "Arbeitsende erfassen.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "employee.js, arbeitszeiten.js, payroll.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 63,
+      "section": "D. Zeiterfassung",
+      "title": "Pausen",
+      "requirement": "Pausenbeginn und -ende dokumentieren.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "employee.js, arbeitszeiten.js, payroll.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 64,
+      "section": "D. Zeiterfassung",
+      "title": "Offene Zeiteinträge",
+      "requirement": "Fehlende Abschlussbuchungen zentral anzeigen.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "employee.js, arbeitszeiten.js, payroll.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 65,
+      "section": "D. Zeiterfassung",
+      "title": "Korrekturanträge",
+      "requirement": "Mitarbeiter kann fehlerhafte Buchung melden.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "employee.js, arbeitszeiten.js, payroll.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 66,
+      "section": "D. Zeiterfassung",
+      "title": "Management-Freigabe",
+      "requirement": "Korrekturen erst nach Prüfung übernehmen.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "employee.js, arbeitszeiten.js, payroll.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 67,
+      "section": "D. Zeiterfassung",
+      "title": "Schichtbezug",
+      "requirement": "Zeitdaten mit geplanter Schicht verknüpfen.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "employee.js, arbeitszeiten.js, payroll.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 68,
+      "section": "D. Zeiterfassung",
+      "title": "Objektbezug",
+      "requirement": "Zeitbuchung gehört zu einem konkreten Objekt.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "employee.js, arbeitszeiten.js, payroll.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 69,
+      "section": "D. Zeiterfassung",
+      "title": "App-Zeiterfassung",
+      "requirement": "Clock-in/out direkt in der Mitarbeiter-App.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "employee.js, arbeitszeiten.js, payroll.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 70,
+      "section": "D. Zeiterfassung",
+      "title": "NFC-Zeiterfassung",
+      "requirement": "NFC-Tag am Objekt löst Zeitbuchung aus.",
+      "status": "implementiert_getestet",
+      "evidence": "tests/nfc.browser.cjs, tests/backend-integrity.sql",
+      "next_step": "Code-/Datenbanktests bestanden; Abnahme im veröffentlichten Frontend steht aus. Browsertests verwenden simulierte Backendantworten."
+    },
+    {
+      "id": 71,
+      "section": "D. Zeiterfassung",
+      "title": "QR-Zeiterfassung",
+      "requirement": "QR-Code als alternative Buchungsmethode.",
+      "status": "offen",
+      "evidence": "employee.js, arbeitszeiten.js, payroll.js",
+      "next_step": "Vollständige Umsetzung bzw. externe Konfiguration und Abnahme fehlen oder sind nicht nachgewiesen."
+    },
+    {
+      "id": 72,
+      "section": "D. Zeiterfassung",
+      "title": "Kiosk-Modus",
+      "requirement": "Gemeinsames Tablet am Objekt.",
+      "status": "offen",
+      "evidence": "employee.js, arbeitszeiten.js, payroll.js",
+      "next_step": "Vollständige Umsetzung bzw. externe Konfiguration und Abnahme fehlen oder sind nicht nachgewiesen."
+    },
+    {
+      "id": 73,
+      "section": "D. Zeiterfassung",
+      "title": "Manuelle Zeiterfassung",
+      "requirement": "Manuelle Änderungen nur mit entsprechender Berechtigung.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "employee.js, arbeitszeiten.js, payroll.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 74,
+      "section": "D. Zeiterfassung",
+      "title": "Automatische Stundenabrechnung",
+      "requirement": "Arbeitszeiten automatisch zusammenfassen.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "employee.js, arbeitszeiten.js, payroll.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 75,
+      "section": "D. Zeiterfassung",
+      "title": "Soll-Ist-Vergleich",
+      "requirement": "Geplante und tatsächliche Zeit vergleichen.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "employee.js, arbeitszeiten.js, payroll.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 76,
+      "section": "D. Zeiterfassung",
+      "title": "Verspätungserkennung",
+      "requirement": "Zu späten Dienstbeginn automatisch erkennen.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "employee.js, arbeitszeiten.js, payroll.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 77,
+      "section": "D. Zeiterfassung",
+      "title": "Frühes Ausstempeln",
+      "requirement": "Vorzeitiges Dienstende markieren.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "employee.js, arbeitszeiten.js, payroll.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 78,
+      "section": "D. Zeiterfassung",
+      "title": "Fehlender Check-out",
+      "requirement": "Automatische Warnung bei fehlendem Ausstempeln.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "employee.js, arbeitszeiten.js, payroll.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 79,
+      "section": "D. Zeiterfassung",
+      "title": "Nachtstunden",
+      "requirement": "Nachtanteile automatisch kennzeichnen.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "employee.js, arbeitszeiten.js, payroll.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 80,
+      "section": "D. Zeiterfassung",
+      "title": "Sonntagsstunden",
+      "requirement": "Sonntagsarbeit separat berechnen.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "employee.js, arbeitszeiten.js, payroll.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 81,
+      "section": "D. Zeiterfassung",
+      "title": "Feiertagsstunden",
+      "requirement": "Feiertage nach Standort/Bundesland berücksichtigen.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "employee.js, arbeitszeiten.js, payroll.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 82,
+      "section": "D. Zeiterfassung",
+      "title": "Zuschläge",
+      "requirement": "Grundlage für Zuschlags- und Lohnlogik.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "employee.js, arbeitszeiten.js, payroll.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 83,
+      "section": "D. Zeiterfassung",
+      "title": "Lohnexport",
+      "requirement": "Zeitdaten für Lohnabrechnung ausgeben.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "employee.js, arbeitszeiten.js, payroll.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 84,
+      "section": "D. Zeiterfassung",
+      "title": "DATEV Export",
+      "requirement": "Vorbereitete Zeit- und Lohndaten in DATEV-kompatible Form überführen.",
+      "status": "offen",
+      "evidence": "employee.js, arbeitszeiten.js, payroll.js",
+      "next_step": "Vollständige Umsetzung bzw. externe Konfiguration und Abnahme fehlen oder sind nicht nachgewiesen."
+    },
+    {
+      "id": 85,
+      "section": "E. NFC",
+      "title": "Objekt-NFC-Tags",
+      "requirement": "Tags eindeutig einem Objekt zuordnen.",
+      "status": "implementiert_getestet",
+      "evidence": "tests/nfc.browser.cjs, tests/backend-integrity.sql",
+      "next_step": "Code-/Datenbanktests bestanden; Abnahme im veröffentlichten Frontend steht aus. Browsertests verwenden simulierte Backendantworten."
+    },
+    {
+      "id": 86,
+      "section": "E. NFC",
+      "title": "Tokenbasierte NFC-Tags",
+      "requirement": "Sichere Token statt offen manipulierbarer Objektinformationen.",
+      "status": "implementiert_getestet",
+      "evidence": "tests/nfc.browser.cjs, tests/backend-integrity.sql",
+      "next_step": "Code-/Datenbanktests bestanden; Abnahme im veröffentlichten Frontend steht aus. Browsertests verwenden simulierte Backendantworten."
+    },
+    {
+      "id": 87,
+      "section": "E. NFC",
+      "title": "Aktiv/Inaktiv",
+      "requirement": "Tags administrativ sperren oder reaktivieren.",
+      "status": "teilweise",
+      "evidence": "nfc.js, nfc-admin.js",
+      "next_step": "Datenbank unterstützt Aktiv/Inaktiv; Verwaltung vorhandener Tags noch zu ergänzen."
+    },
+    {
+      "id": 88,
+      "section": "E. NFC",
+      "title": "Automatisches Einstempeln",
+      "requirement": "Tag öffnen, Nutzer und Objekt erkennen, Zeit starten.",
+      "status": "implementiert_getestet",
+      "evidence": "tests/nfc.browser.cjs, tests/backend-integrity.sql",
+      "next_step": "Code-/Datenbanktests bestanden; Abnahme im veröffentlichten Frontend steht aus. Browsertests verwenden simulierte Backendantworten."
+    },
+    {
+      "id": 89,
+      "section": "E. NFC",
+      "title": "Automatisches Ausstempeln",
+      "requirement": "Offenen Zeiteintrag erkennen und beenden.",
+      "status": "implementiert_getestet",
+      "evidence": "tests/nfc.browser.cjs, tests/backend-integrity.sql",
+      "next_step": "Code-/Datenbanktests bestanden; Abnahme im veröffentlichten Frontend steht aus. Browsertests verwenden simulierte Backendantworten."
+    },
+    {
+      "id": 90,
+      "section": "E. NFC",
+      "title": "Schichterkennung",
+      "requirement": "Passende geplante Schicht automatisch suchen.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "nfc.js, nfc-admin.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 91,
+      "section": "E. NFC",
+      "title": "Falsches Objekt verhindern",
+      "requirement": "Objektzuordnung validieren.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "nfc.js, nfc-admin.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 92,
+      "section": "E. NFC",
+      "title": "NFC Audit",
+      "requirement": "Jede Tag-Nutzung protokollieren.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "nfc.js, nfc-admin.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 93,
+      "section": "E. NFC",
+      "title": "NFC Management",
+      "requirement": "Zentrale Verwaltung aller Tags.",
+      "status": "teilweise",
+      "evidence": "nfc.js, nfc-admin.js",
+      "next_step": "Tags können erstellt und beschrieben werden; Liste und Sperrfunktion fehlen noch."
+    },
+    {
+      "id": 94,
+      "section": "E. NFC",
+      "title": "iPhone-kompatible NFC-URLs",
+      "requirement": "URL-basierter NFC-Flow für iOS-Kompatibilität.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "nfc.js, nfc-admin.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 95,
+      "section": "F. Objektverwaltung",
+      "title": "Objektstammdaten",
+      "requirement": "Name, Kunde, Adresse und Status.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "objekte.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 96,
+      "section": "F. Objektverwaltung",
+      "title": "Standortdaten",
+      "requirement": "Latitude, Longitude und Geofence.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "objekte.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 97,
+      "section": "F. Objektverwaltung",
+      "title": "Location Policy",
+      "requirement": "Objekt definiert, ob Standortprüfung erforderlich ist.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "objekte.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 98,
+      "section": "F. Objektverwaltung",
+      "title": "Digitale Objektakte",
+      "requirement": "Zentrale Akte für alle Informationen.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "objekte.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 99,
+      "section": "F. Objektverwaltung",
+      "title": "Ansprechpartner",
+      "requirement": "Kundenkontakte und interne Verantwortliche.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "objekte.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 100,
+      "section": "F. Objektverwaltung",
+      "title": "Dienstanweisung",
+      "requirement": "Objektspezifische Dienstvorgaben.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "objekte.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 101,
+      "section": "F. Objektverwaltung",
+      "title": "Objektanweisung",
+      "requirement": "Spezielle Abläufe und Regeln.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "objekte.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 102,
+      "section": "F. Objektverwaltung",
+      "title": "Notfallkontakte",
+      "requirement": "Polizei, Feuerwehr, Kunde, Objektleitung und weitere Stellen.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "objekte.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 103,
+      "section": "F. Objektverwaltung",
+      "title": "Alarmplan",
+      "requirement": "Definierte Alarm- und Eskalationsprozesse.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "objekte.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 104,
+      "section": "F. Objektverwaltung",
+      "title": "Schlüssel",
+      "requirement": "Objektbezogene Schlüsselverwaltung.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "objekte.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 105,
+      "section": "F. Objektverwaltung",
+      "title": "Zugangsdaten",
+      "requirement": "Zugangscodes, Karten und Berechtigungen geschützt verwalten.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "objekte.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 106,
+      "section": "F. Objektverwaltung",
+      "title": "Schichtmodelle",
+      "requirement": "Standardbesetzungen und Dienstmuster.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "objekte.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 107,
+      "section": "F. Objektverwaltung",
+      "title": "Benötigte Qualifikation",
+      "requirement": "Mindestanforderungen je Objekt.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "objekte.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 108,
+      "section": "F. Objektverwaltung",
+      "title": "Mindestbesetzung",
+      "requirement": "Erforderliche Mitarbeiterzahl.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "objekte.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 109,
+      "section": "F. Objektverwaltung",
+      "title": "WKS-Routen",
+      "requirement": "Kontrollrouten direkt zuordnen.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "objekte.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 110,
+      "section": "F. Objektverwaltung",
+      "title": "Objektdokumente",
+      "requirement": "Pläne, Anweisungen, Formulare und Nachweise.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "objekte.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 111,
+      "section": "F. Objektverwaltung",
+      "title": "Objekt-Wachbuch",
+      "requirement": "Chronologie aller Wachbucheinträge.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "objekte.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 112,
+      "section": "F. Objektverwaltung",
+      "title": "Objektvorfälle",
+      "requirement": "Alle Incidents des Standortes.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "objekte.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 113,
+      "section": "F. Objektverwaltung",
+      "title": "Objektfotos",
+      "requirement": "Fotodokumentation von Bereichen und Zustand.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "objekte.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 114,
+      "section": "F. Objektverwaltung",
+      "title": "Objektgeräte",
+      "requirement": "Geräte und Technik verwalten.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "objekte.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 115,
+      "section": "F. Objektverwaltung",
+      "title": "Objektfahrzeuge",
+      "requirement": "Fahrzeuge zuordnen.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "objekte.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 116,
+      "section": "G. Wächterkontrollsystem",
+      "title": "Patrol Routes",
+      "requirement": "Digitale Rundgangsrouten.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "security-ops.js, einsatz.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 117,
+      "section": "G. Wächterkontrollsystem",
+      "title": "Kontrollpunkte",
+      "requirement": "QR- oder NFC-basierte Kontrollstellen.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "security-ops.js, einsatz.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 118,
+      "section": "G. Wächterkontrollsystem",
+      "title": "Kontrolllauf",
+      "requirement": "Mitarbeiter startet einen vollständigen Rundgang.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "security-ops.js, einsatz.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 119,
+      "section": "G. Wächterkontrollsystem",
+      "title": "Zeitstempel",
+      "requirement": "Jeder Kontrollpunkt erhält Datum und Uhrzeit.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "security-ops.js, einsatz.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 120,
+      "section": "G. Wächterkontrollsystem",
+      "title": "Mitarbeiterzuordnung",
+      "requirement": "Rundgang eindeutig einer Person zuweisen.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "security-ops.js, einsatz.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 121,
+      "section": "G. Wächterkontrollsystem",
+      "title": "Fehlende Kontrollpunkte",
+      "requirement": "Ausgelassene Punkte automatisch erkennen.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "security-ops.js, einsatz.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 122,
+      "section": "G. Wächterkontrollsystem",
+      "title": "Zeitfenster",
+      "requirement": "Rundgänge müssen innerhalb definierter Fenster erfolgen.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "security-ops.js, einsatz.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 123,
+      "section": "G. Wächterkontrollsystem",
+      "title": "Verspäteter Rundgang",
+      "requirement": "Warnung bei verspätetem Kontrolllauf.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "security-ops.js, einsatz.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 124,
+      "section": "G. Wächterkontrollsystem",
+      "title": "Live-Status",
+      "requirement": "Laufende Rundgänge im Command Center sichtbar.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "security-ops.js, einsatz.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 125,
+      "section": "G. Wächterkontrollsystem",
+      "title": "Notfalltaste",
+      "requirement": "SOS-Funktion während des Rundgangs.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "security-ops.js, einsatz.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 126,
+      "section": "G. Wächterkontrollsystem",
+      "title": "Foto am Kontrollpunkt",
+      "requirement": "Optionaler Bildnachweis.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "security-ops.js, einsatz.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 127,
+      "section": "G. Wächterkontrollsystem",
+      "title": "Kommentar",
+      "requirement": "Besonderheiten dokumentieren.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "security-ops.js, einsatz.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 128,
+      "section": "G. Wächterkontrollsystem",
+      "title": "Offline-Modus",
+      "requirement": "Rundgänge ohne Netz durchführen und später synchronisieren.",
+      "status": "offen",
+      "evidence": "security-ops.js, einsatz.js",
+      "next_step": "Vollständige Umsetzung bzw. externe Konfiguration und Abnahme fehlen oder sind nicht nachgewiesen."
+    },
+    {
+      "id": 129,
+      "section": "G. Wächterkontrollsystem",
+      "title": "Automatische Eskalation",
+      "requirement": "Nicht erfolgte Rundgänge eskalieren.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "security-ops.js, einsatz.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 130,
+      "section": "G. Wächterkontrollsystem",
+      "title": "Rundgangbericht",
+      "requirement": "Automatischer Abschlussbericht.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "security-ops.js, einsatz.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 131,
+      "section": "H. Wachbuch",
+      "title": "Digitale Wachbucheinträge",
+      "requirement": "Papierwachbuch digital ersetzen.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "employee.js, reporting.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 132,
+      "section": "H. Wachbuch",
+      "title": "Mitarbeiterzuordnung",
+      "requirement": "Autor jedes Eintrags eindeutig festhalten.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "employee.js, reporting.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 133,
+      "section": "H. Wachbuch",
+      "title": "Objektzuordnung",
+      "requirement": "Eintrag dem richtigen Objekt zuordnen.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "employee.js, reporting.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 134,
+      "section": "H. Wachbuch",
+      "title": "Datum und Uhrzeit",
+      "requirement": "Automatisch dokumentieren.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "employee.js, reporting.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 135,
+      "section": "H. Wachbuch",
+      "title": "Schichtübergabe",
+      "requirement": "Informationen strukturiert an Folgeschicht übergeben.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "employee.js, reporting.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 136,
+      "section": "H. Wachbuch",
+      "title": "Besondere Vorkommnisse",
+      "requirement": "Freitext und strukturierte Ereignisse.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "employee.js, reporting.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 137,
+      "section": "H. Wachbuch",
+      "title": "Besucher",
+      "requirement": "Optional Besucherbezug erfassen.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "employee.js, reporting.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 138,
+      "section": "H. Wachbuch",
+      "title": "Schlüsselübergabe",
+      "requirement": "Ein- und Ausgabe dokumentieren.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "employee.js, reporting.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 139,
+      "section": "H. Wachbuch",
+      "title": "Technikstörung",
+      "requirement": "Defekte und Maßnahmen erfassen.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "employee.js, reporting.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 140,
+      "section": "H. Wachbuch",
+      "title": "Alarmereignisse",
+      "requirement": "Alarme im Wachbuch dokumentieren.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "employee.js, reporting.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 141,
+      "section": "H. Wachbuch",
+      "title": "Polizei",
+      "requirement": "Polizeikontakt erfassen.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "employee.js, reporting.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 142,
+      "section": "H. Wachbuch",
+      "title": "Feuerwehr",
+      "requirement": "Feuerwehreinsatz dokumentieren.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "employee.js, reporting.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 143,
+      "section": "H. Wachbuch",
+      "title": "Rettungsdienst",
+      "requirement": "Medizinische Einsätze dokumentieren.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "employee.js, reporting.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 144,
+      "section": "H. Wachbuch",
+      "title": "Anhänge",
+      "requirement": "Fotos und Dokumente beifügen.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "employee.js, reporting.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 145,
+      "section": "H. Wachbuch",
+      "title": "Digitale Bestätigung",
+      "requirement": "Übergaben oder besondere Einträge bestätigen.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "employee.js, reporting.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 146,
+      "section": "H. Wachbuch",
+      "title": "PDF Export",
+      "requirement": "Wachbuch nach Zeitraum oder Objekt exportieren.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "employee.js, reporting.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 147,
+      "section": "H. Wachbuch",
+      "title": "Manipulationssichere Archivierung",
+      "requirement": "Nachträgliche Änderungen transparent und nachvollziehbar halten.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "employee.js, reporting.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 148,
+      "section": "I. Incident Management",
+      "title": "Zentrale Incident-Struktur",
+      "requirement": "Einheitlicher Workflow für alle Vorfallsarten.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "security-ops.js, employee.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 149,
+      "section": "I. Incident Management",
+      "title": "Diebstahl",
+      "requirement": "Retail-Diebstahl strukturiert erfassen.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "security-ops.js, employee.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 150,
+      "section": "I. Incident Management",
+      "title": "Hausverbot",
+      "requirement": "Hausverbote dokumentieren.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "security-ops.js, employee.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 151,
+      "section": "I. Incident Management",
+      "title": "Körperverletzung",
+      "requirement": "Personenbezogene Vorfälle strukturiert dokumentieren.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "security-ops.js, employee.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 152,
+      "section": "I. Incident Management",
+      "title": "Sachbeschädigung",
+      "requirement": "Schäden und Maßnahmen erfassen.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "security-ops.js, employee.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 153,
+      "section": "I. Incident Management",
+      "title": "Brand",
+      "requirement": "Brandereignisse dokumentieren.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "security-ops.js, employee.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 154,
+      "section": "I. Incident Management",
+      "title": "Medizinischer Notfall",
+      "requirement": "Maßnahmen und Rettungsdienst protokollieren.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "security-ops.js, employee.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 155,
+      "section": "I. Incident Management",
+      "title": "Polizei",
+      "requirement": "Vorgangsnummer und Kontakt erfassen.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "security-ops.js, employee.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 156,
+      "section": "I. Incident Management",
+      "title": "Alarm",
+      "requirement": "Alarmtyp und Reaktion.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "security-ops.js, employee.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 157,
+      "section": "I. Incident Management",
+      "title": "Technische Störung",
+      "requirement": "Technische Ereignisse dokumentieren.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "security-ops.js, employee.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 158,
+      "section": "I. Incident Management",
+      "title": "Unfall",
+      "requirement": "Arbeits- oder sonstige Unfälle erfassen.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "security-ops.js, employee.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 159,
+      "section": "I. Incident Management",
+      "title": "Fotos",
+      "requirement": "Bildbeweise anhängen.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "security-ops.js, employee.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 160,
+      "section": "I. Incident Management",
+      "title": "Zeugen",
+      "requirement": "Zeugeninformationen erfassen.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "security-ops.js, employee.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 161,
+      "section": "I. Incident Management",
+      "title": "Beteiligte",
+      "requirement": "Beteiligte Personen strukturiert erfassen.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "security-ops.js, employee.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 162,
+      "section": "I. Incident Management",
+      "title": "Maßnahmen",
+      "requirement": "Reaktion und Folgeaktivitäten dokumentieren.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "security-ops.js, employee.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 163,
+      "section": "I. Incident Management",
+      "title": "Automatische Incident-Nummer",
+      "requirement": "Jeder Vorgang erhält eine eindeutige Nummer.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "security-ops.js, employee.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 164,
+      "section": "I. Incident Management",
+      "title": "PDF Bericht",
+      "requirement": "Professionellen Vorfallsbericht erzeugen.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "security-ops.js, employee.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 165,
+      "section": "I. Incident Management",
+      "title": "Freigabe",
+      "requirement": "Kritische Vorfälle durch Objektleitung oder Management freigeben.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "security-ops.js, employee.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 166,
+      "section": "J. Dokumentenmanagement",
+      "title": "Private Storage",
+      "requirement": "Dokumente sind nicht öffentlich abrufbar.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "documents.js, meine-dokumente.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 167,
+      "section": "J. Dokumentenmanagement",
+      "title": "Dateitypen",
+      "requirement": "PDF, Bilder, DOCX, XLSX, CSV und weitere Formate.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "documents.js, meine-dokumente.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 168,
+      "section": "J. Dokumentenmanagement",
+      "title": "Dokumentregistrierung",
+      "requirement": "Metadaten, Zugehörigkeit und Kategorie speichern.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "documents.js, meine-dokumente.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 169,
+      "section": "J. Dokumentenmanagement",
+      "title": "Versionierung",
+      "requirement": "Ältere Dokumentversionen erhalten.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "documents.js, meine-dokumente.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 170,
+      "section": "J. Dokumentenmanagement",
+      "title": "Freigabestatus",
+      "requirement": "Entwurf, freigegeben, archiviert.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "documents.js, meine-dokumente.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 171,
+      "section": "J. Dokumentenmanagement",
+      "title": "Archivierung",
+      "requirement": "Regelkonforme Ablage.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "documents.js, meine-dokumente.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 172,
+      "section": "J. Dokumentenmanagement",
+      "title": "Zugriff protokollieren",
+      "requirement": "Öffnen, Herunterladen und Änderungen auditieren.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "documents.js, meine-dokumente.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 173,
+      "section": "J. Dokumentenmanagement",
+      "title": "Dokumentversand",
+      "requirement": "Dokumente gezielt an berechtigte Personen verteilen.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "documents.js, meine-dokumente.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 174,
+      "section": "J. Dokumentenmanagement",
+      "title": "Mitarbeiterdokumente",
+      "requirement": "Personalakte.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "documents.js, meine-dokumente.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 175,
+      "section": "J. Dokumentenmanagement",
+      "title": "Objektdokumente",
+      "requirement": "Objektakte.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "documents.js, meine-dokumente.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 176,
+      "section": "J. Dokumentenmanagement",
+      "title": "Verträge",
+      "requirement": "Kunden- und sonstige Verträge.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "documents.js, meine-dokumente.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 177,
+      "section": "J. Dokumentenmanagement",
+      "title": "Dienstanweisungen",
+      "requirement": "Aktuelle und historische Versionen.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "documents.js, meine-dokumente.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 178,
+      "section": "J. Dokumentenmanagement",
+      "title": "Zertifikate",
+      "requirement": "Qualifikationsnachweise.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "documents.js, meine-dokumente.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 179,
+      "section": "J. Dokumentenmanagement",
+      "title": "Unterweisungen",
+      "requirement": "Pflichtunterweisungen und Nachweise.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "documents.js, meine-dokumente.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 180,
+      "section": "J. Dokumentenmanagement",
+      "title": "Formulare",
+      "requirement": "Digitale Formulare und Vorlagen.",
+      "status": "teilweise",
+      "evidence": "documents.js, meine-dokumente.js",
+      "next_step": "Formular-Builder und Einreichung mit historischer Vorlage ergänzt; vollständiger Dokumentenprozess separat zu prüfen."
+    },
+    {
+      "id": 181,
+      "section": "K. Fuhrpark",
+      "title": "Fahrzeuge",
+      "requirement": "Fahrzeugstammdaten verwalten.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "fuhrpark.js, fahrtenbuch.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 182,
+      "section": "K. Fuhrpark",
+      "title": "Fahrt starten",
+      "requirement": "Fahrer und Kilometerstand erfassen.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "fuhrpark.js, fahrtenbuch.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 183,
+      "section": "K. Fuhrpark",
+      "title": "Fahrt beenden",
+      "requirement": "Endkilometer und Status dokumentieren.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "fuhrpark.js, fahrtenbuch.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 184,
+      "section": "K. Fuhrpark",
+      "title": "Kennzeichen",
+      "requirement": "Eindeutige Fahrzeugidentifikation.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "fuhrpark.js, fahrtenbuch.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 185,
+      "section": "K. Fuhrpark",
+      "title": "Fahrer",
+      "requirement": "Fahrerzuordnung.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "fuhrpark.js, fahrtenbuch.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 186,
+      "section": "K. Fuhrpark",
+      "title": "Kilometer",
+      "requirement": "Start- und Endkilometer.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "fuhrpark.js, fahrtenbuch.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 187,
+      "section": "K. Fuhrpark",
+      "title": "Tankvorgänge",
+      "requirement": "Verbrauch und Kosten.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "fuhrpark.js, fahrtenbuch.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 188,
+      "section": "K. Fuhrpark",
+      "title": "Fahrzeugschäden",
+      "requirement": "Schäden inkl. Fotos dokumentieren.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "fuhrpark.js, fahrtenbuch.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 189,
+      "section": "K. Fuhrpark",
+      "title": "Unfall",
+      "requirement": "Unfallverwaltung.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "fuhrpark.js, fahrtenbuch.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 190,
+      "section": "K. Fuhrpark",
+      "title": "Führerscheinkontrolle",
+      "requirement": "Gültigkeit dokumentieren.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "fuhrpark.js, fahrtenbuch.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 191,
+      "section": "K. Fuhrpark",
+      "title": "Wartung",
+      "requirement": "Serviceintervalle.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "fuhrpark.js, fahrtenbuch.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 192,
+      "section": "K. Fuhrpark",
+      "title": "TÜV",
+      "requirement": "Fristen überwachen.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "fuhrpark.js, fahrtenbuch.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 193,
+      "section": "K. Fuhrpark",
+      "title": "UVV",
+      "requirement": "Prüfung und Nachweise.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "fuhrpark.js, fahrtenbuch.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 194,
+      "section": "K. Fuhrpark",
+      "title": "Reparatur",
+      "requirement": "Werkstattstatus und Kosten.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "fuhrpark.js, fahrtenbuch.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 195,
+      "section": "K. Fuhrpark",
+      "title": "Automatische Erinnerungen",
+      "requirement": "TÜV, Wartung, Führerschein etc.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "fuhrpark.js, fahrtenbuch.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 196,
+      "section": "L. A ONE Lernwelt",
+      "title": "Kurssystem",
+      "requirement": "Zentrale interne Academy.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "lernwelt.js, lernwelt-admin.js, pflichtschulungen.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 197,
+      "section": "L. A ONE Lernwelt",
+      "title": "Lernmodule",
+      "requirement": "Kurse in kleine Lerneinheiten strukturieren.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "lernwelt.js, lernwelt-admin.js, pflichtschulungen.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 198,
+      "section": "L. A ONE Lernwelt",
+      "title": "Quizfragen",
+      "requirement": "Wissenschecks.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "lernwelt.js, lernwelt-admin.js, pflichtschulungen.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 199,
+      "section": "L. A ONE Lernwelt",
+      "title": "Lernfortschritt",
+      "requirement": "Fortschritt speichern.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "lernwelt.js, lernwelt-admin.js, pflichtschulungen.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 200,
+      "section": "L. A ONE Lernwelt",
+      "title": "XP und Lernmotivation",
+      "requirement": "Optionales Gamification-Element.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "lernwelt.js, lernwelt-admin.js, pflichtschulungen.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 201,
+      "section": "L. A ONE Lernwelt",
+      "title": "Bestanden / Nicht bestanden",
+      "requirement": "Prüfergebnisse.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "lernwelt.js, lernwelt-admin.js, pflichtschulungen.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 202,
+      "section": "L. A ONE Lernwelt",
+      "title": "Ergebnis-Historie",
+      "requirement": "Vergangene Prüfungen und Versuche.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "lernwelt.js, lernwelt-admin.js, pflichtschulungen.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 203,
+      "section": "L. A ONE Lernwelt",
+      "title": "Lernmodus",
+      "requirement": "Erklärungen während des Lernens.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "lernwelt.js, lernwelt-admin.js, pflichtschulungen.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 204,
+      "section": "L. A ONE Lernwelt",
+      "title": "Prüfungsmodus",
+      "requirement": "Bewertete Tests.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "lernwelt.js, lernwelt-admin.js, pflichtschulungen.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 205,
+      "section": "L. A ONE Lernwelt",
+      "title": "Erklärungen",
+      "requirement": "Warum ist eine Antwort richtig oder falsch?",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "lernwelt.js, lernwelt-admin.js, pflichtschulungen.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 206,
+      "section": "L. A ONE Lernwelt",
+      "title": "Unterweisungen",
+      "requirement": "Pflichtinhalte.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "lernwelt.js, lernwelt-admin.js, pflichtschulungen.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 207,
+      "section": "L. A ONE Lernwelt",
+      "title": "Kenntnisnahme",
+      "requirement": "Dokumentierte Bestätigung.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "lernwelt.js, lernwelt-admin.js, pflichtschulungen.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 208,
+      "section": "L. A ONE Lernwelt",
+      "title": "Suche",
+      "requirement": "Kurse schnell finden.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "lernwelt.js, lernwelt-admin.js, pflichtschulungen.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 209,
+      "section": "L. A ONE Lernwelt",
+      "title": "Kategorien",
+      "requirement": "Recht, Brandschutz, Retail, Datenschutz etc.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "lernwelt.js, lernwelt-admin.js, pflichtschulungen.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 210,
+      "section": "L. A ONE Lernwelt",
+      "title": "Mitarbeiter-Dashboard",
+      "requirement": "Eigene Kurse und Fristen.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "lernwelt.js, lernwelt-admin.js, pflichtschulungen.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 211,
+      "section": "L. A ONE Lernwelt",
+      "title": "Management-Dashboard",
+      "requirement": "Schulungsstatus aller Mitarbeiter.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "lernwelt.js, lernwelt-admin.js, pflichtschulungen.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 212,
+      "section": "L. A ONE Lernwelt",
+      "title": "Eigene Firmenkurse",
+      "requirement": "Unternehmen erstellen eigene Lerninhalte.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "lernwelt.js, lernwelt-admin.js, pflichtschulungen.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 213,
+      "section": "L. A ONE Lernwelt",
+      "title": "Objektunterweisungen",
+      "requirement": "Objektspezifische Schulungen.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "lernwelt.js, lernwelt-admin.js, pflichtschulungen.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 214,
+      "section": "L. A ONE Lernwelt",
+      "title": "Multimedia",
+      "requirement": "PDF, Video, Bilder.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "lernwelt.js, lernwelt-admin.js, pflichtschulungen.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 215,
+      "section": "L. A ONE Lernwelt",
+      "title": "Fälligkeiten",
+      "requirement": "Kurse erhalten Deadlines.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "lernwelt.js, lernwelt-admin.js, pflichtschulungen.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 216,
+      "section": "L. A ONE Lernwelt",
+      "title": "Automatische Erinnerungen",
+      "requirement": "Überfällige Schulungen eskalieren.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "lernwelt.js, lernwelt-admin.js, pflichtschulungen.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 217,
+      "section": "L. A ONE Lernwelt",
+      "title": "Schulungsnachweise",
+      "requirement": "Nach erfolgreichem Abschluss.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "lernwelt.js, lernwelt-admin.js, pflichtschulungen.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 218,
+      "section": "L. A ONE Lernwelt",
+      "title": "Interne Zertifikate",
+      "requirement": "Interne Nachweise, klar getrennt von staatlichen Qualifikationen.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "lernwelt.js, lernwelt-admin.js, pflichtschulungen.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 219,
+      "section": "L. A ONE Lernwelt",
+      "title": "Kurszuweisung",
+      "requirement": "Nach Mitarbeiter, Objekt oder Rolle.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "lernwelt.js, lernwelt-admin.js, pflichtschulungen.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 220,
+      "section": "M. Reporting und Archiv",
+      "title": "Monatsarchive",
+      "requirement": "Monatliche Abschlussstände und Archive.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "reporting.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 221,
+      "section": "M. Reporting und Archiv",
+      "title": "Historische Daten",
+      "requirement": "Frühere Monate jederzeit abrufbar.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "reporting.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 222,
+      "section": "M. Reporting und Archiv",
+      "title": "Integritätsprüfung",
+      "requirement": "Hash- oder ähnliche Mechanismen zur Erkennung nachträglicher Veränderungen.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "reporting.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 223,
+      "section": "M. Reporting und Archiv",
+      "title": "Arbeitszeitreports",
+      "requirement": "Monatsauswertung der Stunden.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "reporting.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 224,
+      "section": "M. Reporting und Archiv",
+      "title": "Wachbuchreports",
+      "requirement": "Export von Wachbuchdaten.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "reporting.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 225,
+      "section": "M. Reporting und Archiv",
+      "title": "WKS Reports",
+      "requirement": "Rundgangquote und Kontrollnachweise.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "reporting.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 226,
+      "section": "M. Reporting und Archiv",
+      "title": "Incident Reports",
+      "requirement": "Vorfallübersichten.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "reporting.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 227,
+      "section": "M. Reporting und Archiv",
+      "title": "Mitarbeiterreports",
+      "requirement": "Stunden, Qualifikationen und Fehlzeiten.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "reporting.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 228,
+      "section": "M. Reporting und Archiv",
+      "title": "Schulungsreports",
+      "requirement": "Compliance- und Lernstatus.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "reporting.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 229,
+      "section": "M. Reporting und Archiv",
+      "title": "Fuhrparkreports",
+      "requirement": "Fahrten, Kosten und Wartung.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "reporting.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 230,
+      "section": "N. Sicherheit und Datenschutz",
+      "title": "MFA",
+      "requirement": "Mehrfaktor-Authentifizierung.",
+      "status": "offen",
+      "evidence": "core.js, compliance.js",
+      "next_step": "Vollständige Umsetzung bzw. externe Konfiguration und Abnahme fehlen oder sind nicht nachgewiesen."
+    },
+    {
+      "id": 231,
+      "section": "N. Sicherheit und Datenschutz",
+      "title": "SSO",
+      "requirement": "Enterprise Single Sign-On.",
+      "status": "offen",
+      "evidence": "core.js, compliance.js",
+      "next_step": "Vollständige Umsetzung bzw. externe Konfiguration und Abnahme fehlen oder sind nicht nachgewiesen."
+    },
+    {
+      "id": 232,
+      "section": "N. Sicherheit und Datenschutz",
+      "title": "Microsoft Entra ID",
+      "requirement": "Unternehmensintegration.",
+      "status": "offen",
+      "evidence": "core.js, compliance.js",
+      "next_step": "Vollständige Umsetzung bzw. externe Konfiguration und Abnahme fehlen oder sind nicht nachgewiesen."
+    },
+    {
+      "id": 233,
+      "section": "N. Sicherheit und Datenschutz",
+      "title": "Feingranulare Rechte",
+      "requirement": "Feld- und Funktionsrechte.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "core.js, compliance.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 234,
+      "section": "N. Sicherheit und Datenschutz",
+      "title": "Exportprotokollierung",
+      "requirement": "Datenexporte nachvollziehbar protokollieren.",
+      "status": "teilweise",
+      "evidence": "core.js, compliance.js",
+      "next_step": "Neue CSV-/Drucknachweise protokollieren Export; sämtliche vorhandenen Exportpfade noch zu prüfen."
+    },
+    {
+      "id": 235,
+      "section": "N. Sicherheit und Datenschutz",
+      "title": "Session Security",
+      "requirement": "Sitzungen überwachen und absichern.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "core.js, compliance.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 236,
+      "section": "N. Sicherheit und Datenschutz",
+      "title": "DSGVO-Prozesse",
+      "requirement": "Auskunft, Löschung und Datenexport unterstützen.",
+      "status": "offen",
+      "evidence": "core.js, compliance.js",
+      "next_step": "Vollständige Umsetzung bzw. externe Konfiguration und Abnahme fehlen oder sind nicht nachgewiesen."
+    },
+    {
+      "id": 237,
+      "section": "N. Sicherheit und Datenschutz",
+      "title": "AVV",
+      "requirement": "Grundlage zur Auftragsverarbeitung.",
+      "status": "offen",
+      "evidence": "core.js, compliance.js",
+      "next_step": "Vollständige Umsetzung bzw. externe Konfiguration und Abnahme fehlen oder sind nicht nachgewiesen."
+    },
+    {
+      "id": 238,
+      "section": "N. Sicherheit und Datenschutz",
+      "title": "Aufbewahrungs- und Löschkonzept",
+      "requirement": "Daten abhängig vom Typ automatisiert archivieren oder löschen.",
+      "status": "offen",
+      "evidence": "core.js, compliance.js",
+      "next_step": "Vollständige Umsetzung bzw. externe Konfiguration und Abnahme fehlen oder sind nicht nachgewiesen."
+    },
+    {
+      "id": 239,
+      "section": "O. Mitarbeiter-App",
+      "title": "Heute",
+      "requirement": "Aktuellen Dienst und wichtigste Aufgaben zeigen.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "employee.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 240,
+      "section": "O. Mitarbeiter-App",
+      "title": "Mein Dienstplan",
+      "requirement": "Persönlicher Kalender.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "employee.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 241,
+      "section": "O. Mitarbeiter-App",
+      "title": "Ein-/Ausstempeln",
+      "requirement": "Große einfache Buttons.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "employee.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 242,
+      "section": "O. Mitarbeiter-App",
+      "title": "Pause",
+      "requirement": "Direkte Pausenfunktion.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "employee.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 243,
+      "section": "O. Mitarbeiter-App",
+      "title": "Wachbuch",
+      "requirement": "Schnelle Einträge.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "employee.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 244,
+      "section": "O. Mitarbeiter-App",
+      "title": "WKS",
+      "requirement": "Rundgänge starten.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "employee.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 245,
+      "section": "O. Mitarbeiter-App",
+      "title": "Vorfall melden",
+      "requirement": "Schnelle Incident-Erfassung.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "employee.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 246,
+      "section": "O. Mitarbeiter-App",
+      "title": "Dokumente",
+      "requirement": "Eigene und objektbezogene Dokumente.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "employee.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 247,
+      "section": "O. Mitarbeiter-App",
+      "title": "Fahrtenbuch",
+      "requirement": "Dienstfahrten.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "employee.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 248,
+      "section": "O. Mitarbeiter-App",
+      "title": "Lernwelt",
+      "requirement": "Schulungen.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "employee.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 249,
+      "section": "O. Mitarbeiter-App",
+      "title": "Urlaub und Krankheit",
+      "requirement": "Abwesenheiten melden.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "employee.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 250,
+      "section": "O. Mitarbeiter-App",
+      "title": "Schichttausch",
+      "requirement": "Dienste tauschen oder abgeben.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "employee.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 251,
+      "section": "O. Mitarbeiter-App",
+      "title": "Profil",
+      "requirement": "Eigene Daten einsehen und zulässige Daten pflegen.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "employee.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 252,
+      "section": "P. Management Command Center",
+      "title": "Zentraldashboard",
+      "requirement": "Zentrale Managementübersicht.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "admin.js, operations.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 253,
+      "section": "P. Management Command Center",
+      "title": "Personalstatus",
+      "requirement": "Wer arbeitet heute, wer fehlt?",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "admin.js, operations.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 254,
+      "section": "P. Management Command Center",
+      "title": "Objektstatus",
+      "requirement": "Welche Objekte sind vollständig besetzt?",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "admin.js, operations.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 255,
+      "section": "P. Management Command Center",
+      "title": "Verspätungen",
+      "requirement": "Live sichtbar.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "admin.js, operations.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 256,
+      "section": "P. Management Command Center",
+      "title": "Rundgangstatus",
+      "requirement": "Fehlende WKS-Läufe erkennen.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "admin.js, operations.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 257,
+      "section": "P. Management Command Center",
+      "title": "Dokumentwarnungen",
+      "requirement": "Ablaufende Qualifikationen und Nachweise.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "admin.js, operations.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 258,
+      "section": "P. Management Command Center",
+      "title": "Incidentübersicht",
+      "requirement": "Offene kritische Ereignisse.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "admin.js, operations.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 259,
+      "section": "Q. AI Grundfunktionen",
+      "title": "AI-Dienstplanung",
+      "requirement": "Mitarbeitervorschläge anhand von Qualifikation, Arbeitszeit, Verfügbarkeit, Entfernung, Überstunden und Objektkenntnis.",
+      "status": "offen",
+      "evidence": "operations.js",
+      "next_step": "Vollständige Umsetzung bzw. externe Konfiguration und Abnahme fehlen oder sind nicht nachgewiesen."
+    },
+    {
+      "id": 260,
+      "section": "Q. AI Grundfunktionen",
+      "title": "AI Operations",
+      "requirement": "Wachbucheinträge zusammenfassen und Auffälligkeiten erkennen.",
+      "status": "offen",
+      "evidence": "operations.js",
+      "next_step": "Vollständige Umsetzung bzw. externe Konfiguration und Abnahme fehlen oder sind nicht nachgewiesen."
+    },
+    {
+      "id": 261,
+      "section": "Q. AI Grundfunktionen",
+      "title": "AI Incident Assistant",
+      "requirement": "Berichte sprachlich verbessern, ohne neue Tatsachen zu erfinden.",
+      "status": "offen",
+      "evidence": "operations.js",
+      "next_step": "Vollständige Umsetzung bzw. externe Konfiguration und Abnahme fehlen oder sind nicht nachgewiesen."
+    },
+    {
+      "id": 262,
+      "section": "Q. AI Grundfunktionen",
+      "title": "AI Management Query",
+      "requirement": "Management kann operative Fragen in natürlicher Sprache stellen.",
+      "status": "offen",
+      "evidence": "operations.js",
+      "next_step": "Vollständige Umsetzung bzw. externe Konfiguration und Abnahme fehlen oder sind nicht nachgewiesen."
+    },
+    {
+      "id": 263,
+      "section": "R. Enterprise Integrationen",
+      "title": "REST API",
+      "requirement": "Offene Programmierschnittstelle.",
+      "status": "teilweise",
+      "evidence": "operations.js",
+      "next_step": "Vorhandene Edge API unterstützt lesenden Zugriff; produktive Integration und Pagination offen."
+    },
+    {
+      "id": 264,
+      "section": "R. Enterprise Integrationen",
+      "title": "SAP Integration",
+      "requirement": "ERP-Anbindung.",
+      "status": "offen",
+      "evidence": "operations.js",
+      "next_step": "Vollständige Umsetzung bzw. externe Konfiguration und Abnahme fehlen oder sind nicht nachgewiesen."
+    },
+    {
+      "id": 265,
+      "section": "R. Enterprise Integrationen",
+      "title": "DATEV Integration",
+      "requirement": "Finance- und Payroll-Anbindung.",
+      "status": "offen",
+      "evidence": "operations.js",
+      "next_step": "Vollständige Umsetzung bzw. externe Konfiguration und Abnahme fehlen oder sind nicht nachgewiesen."
+    },
+    {
+      "id": 266,
+      "section": "R. Enterprise Integrationen",
+      "title": "HR-Systeme",
+      "requirement": "Schnittstellen zu HR-Plattformen.",
+      "status": "offen",
+      "evidence": "operations.js",
+      "next_step": "Vollständige Umsetzung bzw. externe Konfiguration und Abnahme fehlen oder sind nicht nachgewiesen."
+    },
+    {
+      "id": 267,
+      "section": "R. Enterprise Integrationen",
+      "title": "Lohnabrechnungssysteme",
+      "requirement": "Zeit- und Zuschlagsdaten exportieren.",
+      "status": "offen",
+      "evidence": "operations.js",
+      "next_step": "Vollständige Umsetzung bzw. externe Konfiguration und Abnahme fehlen oder sind nicht nachgewiesen."
+    },
+    {
+      "id": 268,
+      "section": "R. Enterprise Integrationen",
+      "title": "Webhooks",
+      "requirement": "Events an Drittsysteme übertragen.",
+      "status": "offen",
+      "evidence": "operations.js",
+      "next_step": "Vollständige Umsetzung bzw. externe Konfiguration und Abnahme fehlen oder sind nicht nachgewiesen."
+    },
+    {
+      "id": 269,
+      "section": "R. Enterprise Integrationen",
+      "title": "White Label",
+      "requirement": "Kundenbranding.",
+      "status": "offen",
+      "evidence": "operations.js",
+      "next_step": "Vollständige Umsetzung bzw. externe Konfiguration und Abnahme fehlen oder sind nicht nachgewiesen."
+    },
+    {
+      "id": 270,
+      "section": "R. Enterprise Integrationen",
+      "title": "Kundenspezifische Entwicklung",
+      "requirement": "Enterprise-Sonderfunktionen.",
+      "status": "offen",
+      "evidence": "operations.js",
+      "next_step": "Vollständige Umsetzung bzw. externe Konfiguration und Abnahme fehlen oder sind nicht nachgewiesen."
+    },
+    {
+      "id": 271,
+      "section": "S. Enterprise Add-ons",
+      "title": "AI-Dienstplanung Add-on",
+      "requirement": "Optionales Premium-Modul.",
+      "status": "offen",
+      "evidence": "index.html",
+      "next_step": "Vollständige Umsetzung bzw. externe Konfiguration und Abnahme fehlen oder sind nicht nachgewiesen."
+    },
+    {
+      "id": 272,
+      "section": "S. Enterprise Add-ons",
+      "title": "API Add-on",
+      "requirement": "Erweiterte API-Funktionen.",
+      "status": "offen",
+      "evidence": "index.html",
+      "next_step": "Vollständige Umsetzung bzw. externe Konfiguration und Abnahme fehlen oder sind nicht nachgewiesen."
+    },
+    {
+      "id": 273,
+      "section": "S. Enterprise Add-ons",
+      "title": "SAP Add-on",
+      "requirement": "Individuelle Integration.",
+      "status": "offen",
+      "evidence": "index.html",
+      "next_step": "Vollständige Umsetzung bzw. externe Konfiguration und Abnahme fehlen oder sind nicht nachgewiesen."
+    },
+    {
+      "id": 274,
+      "section": "S. Enterprise Add-ons",
+      "title": "DATEV Add-on",
+      "requirement": "Erweiterte Finanzschnittstelle.",
+      "status": "offen",
+      "evidence": "index.html",
+      "next_step": "Vollständige Umsetzung bzw. externe Konfiguration und Abnahme fehlen oder sind nicht nachgewiesen."
+    },
+    {
+      "id": 275,
+      "section": "S. Enterprise Add-ons",
+      "title": "SSO Add-on",
+      "requirement": "Enterprise Identity.",
+      "status": "offen",
+      "evidence": "index.html",
+      "next_step": "Vollständige Umsetzung bzw. externe Konfiguration und Abnahme fehlen oder sind nicht nachgewiesen."
+    },
+    {
+      "id": 276,
+      "section": "S. Enterprise Add-ons",
+      "title": "SLA Add-on",
+      "requirement": "Vertraglich definierte Servicelevels.",
+      "status": "offen",
+      "evidence": "index.html",
+      "next_step": "Vollständige Umsetzung bzw. externe Konfiguration und Abnahme fehlen oder sind nicht nachgewiesen."
+    },
+    {
+      "id": 277,
+      "section": "S. Enterprise Add-ons",
+      "title": "Premium Support",
+      "requirement": "Priorisierter Support.",
+      "status": "offen",
+      "evidence": "index.html",
+      "next_step": "Vollständige Umsetzung bzw. externe Konfiguration und Abnahme fehlen oder sind nicht nachgewiesen."
+    },
+    {
+      "id": 278,
+      "section": "S. Enterprise Add-ons",
+      "title": "White Label Add-on",
+      "requirement": "Eigene Domain und Branding.",
+      "status": "offen",
+      "evidence": "index.html",
+      "next_step": "Vollständige Umsetzung bzw. externe Konfiguration und Abnahme fehlen oder sind nicht nachgewiesen."
+    },
+    {
+      "id": 279,
+      "section": "S. Enterprise Add-ons",
+      "title": "Individuelle Entwicklung",
+      "requirement": "Separat kalkulierbare Sonderentwicklung.",
+      "status": "offen",
+      "evidence": "index.html",
+      "next_step": "Vollständige Umsetzung bzw. externe Konfiguration und Abnahme fehlen oder sind nicht nachgewiesen."
+    },
+    {
+      "id": 280,
+      "section": "S. Enterprise Add-ons",
+      "title": "GPS/Fahrtenbuch Add-on",
+      "requirement": "Erweiterte Flottenfunktionen.",
+      "status": "offen",
+      "evidence": "index.html",
+      "next_step": "Vollständige Umsetzung bzw. externe Konfiguration und Abnahme fehlen oder sind nicht nachgewiesen."
+    },
+    {
+      "id": 281,
+      "section": "S. Enterprise Add-ons",
+      "title": "Waffenverwaltung Add-on",
+      "requirement": "Für bewaffnete Dienste.",
+      "status": "offen",
+      "evidence": "index.html",
+      "next_step": "Vollständige Umsetzung bzw. externe Konfiguration und Abnahme fehlen oder sind nicht nachgewiesen."
+    },
+    {
+      "id": 282,
+      "section": "S. Enterprise Add-ons",
+      "title": "Advanced Reporting",
+      "requirement": "Enterprise BI und individuelle Berichte.",
+      "status": "offen",
+      "evidence": "index.html",
+      "next_step": "Vollständige Umsetzung bzw. externe Konfiguration und Abnahme fehlen oder sind nicht nachgewiesen."
+    },
+    {
+      "id": 283,
+      "section": "T. Waffenverwaltung",
+      "title": "Waffenregister",
+      "requirement": "Waffe, Typ und Seriennummer.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "waffen.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 284,
+      "section": "T. Waffenverwaltung",
+      "title": "Ausgabe und Rückgabe",
+      "requirement": "Wer erhielt wann welche Waffe?",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "waffen.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 285,
+      "section": "T. Waffenverwaltung",
+      "title": "Mitarbeiterberechtigung",
+      "requirement": "Nur berechtigte Personen.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "waffen.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 286,
+      "section": "T. Waffenverwaltung",
+      "title": "Munition",
+      "requirement": "Ausgabe und Bestand dokumentieren.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "waffen.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 287,
+      "section": "T. Waffenverwaltung",
+      "title": "Waffensachkunde",
+      "requirement": "Nachweise und Ablaufdaten.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "waffen.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 288,
+      "section": "T. Waffenverwaltung",
+      "title": "Vollständiger Audit Trail",
+      "requirement": "Jeder Vorgang nachvollziehbar.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "waffen.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 289,
+      "section": "U. Website",
+      "title": "Enterprise Design",
+      "requirement": "Professioneller B2B-SaaS-Auftritt.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "index.html, demo.html",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 290,
+      "section": "U. Website",
+      "title": "Hero-Bereich",
+      "requirement": "Klares Produktversprechen.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "index.html, demo.html",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 291,
+      "section": "U. Website",
+      "title": "Produktdemo",
+      "requirement": "Interaktive oder videobasierte Demonstration.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "index.html, demo.html",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 292,
+      "section": "U. Website",
+      "title": "Screenshots",
+      "requirement": "Echte Produktansichten.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "index.html, demo.html",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 293,
+      "section": "U. Website",
+      "title": "Module",
+      "requirement": "Produktbereiche verständlich präsentieren.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "index.html, demo.html",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 294,
+      "section": "U. Website",
+      "title": "Vorteile",
+      "requirement": "Messbarer Nutzen.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "index.html, demo.html",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 295,
+      "section": "U. Website",
+      "title": "Security und Datenschutz",
+      "requirement": "Vertrauen aufbauen.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "index.html, demo.html",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 296,
+      "section": "U. Website",
+      "title": "Kunden und Referenzen",
+      "requirement": "Nur mit Einwilligung verwenden.",
+      "status": "offen",
+      "evidence": "index.html, demo.html",
+      "next_step": "Vollständige Umsetzung bzw. externe Konfiguration und Abnahme fehlen oder sind nicht nachgewiesen."
+    },
+    {
+      "id": 297,
+      "section": "U. Website",
+      "title": "Pricing",
+      "requirement": "Tarife verständlich darstellen.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "index.html, demo.html",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 298,
+      "section": "U. Website",
+      "title": "Enterprise CTA",
+      "requirement": "Demo oder Beratung buchen.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "index.html, demo.html",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 299,
+      "section": "U. Website",
+      "title": "Pilot anfragen",
+      "requirement": "Pilotprogramm bewerben.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "index.html, demo.html",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 300,
+      "section": "U. Website",
+      "title": "Kontakt",
+      "requirement": "Sales-Anfrage.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "index.html, demo.html",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 301,
+      "section": "U. Website",
+      "title": "Impressum",
+      "requirement": "Rechtspflicht.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "index.html, demo.html",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 302,
+      "section": "U. Website",
+      "title": "Datenschutzseite",
+      "requirement": "DSGVO-Informationen.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "index.html, demo.html",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 303,
+      "section": "U. Website",
+      "title": "AGB",
+      "requirement": "SaaS-Vertragsgrundlage.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "index.html, demo.html",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 304,
+      "section": "V. Pricing",
+      "title": "EGNAS Pilot",
+      "requirement": "Premium-Pilot für 6-12 Monate kostenlos gegen reale Nutzung, Bug Reports, Feedback, Feature Requests und Performance-Tests.",
+      "status": "offen",
+      "evidence": "index.html",
+      "next_step": "Vollständige Umsetzung bzw. externe Konfiguration und Abnahme fehlen oder sind nicht nachgewiesen."
+    },
+    {
+      "id": 305,
+      "section": "V. Pricing",
+      "title": "EGNAS nach Pilot",
+      "requirement": "Möglicher langfristiger Sonderpreis nach Pilotphase.",
+      "status": "offen",
+      "evidence": "index.html",
+      "next_step": "Vollständige Umsetzung bzw. externe Konfiguration und Abnahme fehlen oder sind nicht nachgewiesen."
+    },
+    {
+      "id": 306,
+      "section": "V. Pricing",
+      "title": "Standard Plan",
+      "requirement": "Für kleine Sicherheitsunternehmen.",
+      "status": "offen",
+      "evidence": "index.html",
+      "next_step": "Vollständige Umsetzung bzw. externe Konfiguration und Abnahme fehlen oder sind nicht nachgewiesen."
+    },
+    {
+      "id": 307,
+      "section": "V. Pricing",
+      "title": "Business Plan",
+      "requirement": "Grundgebühr plus Mitarbeiterkomponente.",
+      "status": "offen",
+      "evidence": "index.html",
+      "next_step": "Vollständige Umsetzung bzw. externe Konfiguration und Abnahme fehlen oder sind nicht nachgewiesen."
+    },
+    {
+      "id": 308,
+      "section": "V. Pricing",
+      "title": "Enterprise Plan",
+      "requirement": "Staffelpreis nach Größe und Anforderungen.",
+      "status": "offen",
+      "evidence": "index.html",
+      "next_step": "Vollständige Umsetzung bzw. externe Konfiguration und Abnahme fehlen oder sind nicht nachgewiesen."
+    },
+    {
+      "id": 309,
+      "section": "V. Pricing",
+      "title": "Setup Fee",
+      "requirement": "Einrichtung separat berechnen.",
+      "status": "offen",
+      "evidence": "index.html",
+      "next_step": "Vollständige Umsetzung bzw. externe Konfiguration und Abnahme fehlen oder sind nicht nachgewiesen."
+    },
+    {
+      "id": 310,
+      "section": "V. Pricing",
+      "title": "Migration Fee",
+      "requirement": "Datenübernahme separat kalkulieren.",
+      "status": "offen",
+      "evidence": "index.html",
+      "next_step": "Vollständige Umsetzung bzw. externe Konfiguration und Abnahme fehlen oder sind nicht nachgewiesen."
+    },
+    {
+      "id": 311,
+      "section": "V. Pricing",
+      "title": "Integrationskosten",
+      "requirement": "SAP, API, SSO und andere Integrationen separat.",
+      "status": "offen",
+      "evidence": "index.html",
+      "next_step": "Vollständige Umsetzung bzw. externe Konfiguration und Abnahme fehlen oder sind nicht nachgewiesen."
+    },
+    {
+      "id": 312,
+      "section": "V. Pricing",
+      "title": "Support- und SLA-Gebühren",
+      "requirement": "Enterprise-Servicepakete.",
+      "status": "offen",
+      "evidence": "index.html",
+      "next_step": "Vollständige Umsetzung bzw. externe Konfiguration und Abnahme fehlen oder sind nicht nachgewiesen."
+    },
+    {
+      "id": 313,
+      "section": "W. Kundenstrategie",
+      "title": "Pilotkunden",
+      "requirement": "EGNAS als Entwicklungs- und Referenzpartner nutzen.",
+      "status": "offen",
+      "evidence": "egnas.html",
+      "next_step": "Vollständige Umsetzung bzw. externe Konfiguration und Abnahme fehlen oder sind nicht nachgewiesen."
+    },
+    {
+      "id": 314,
+      "section": "W. Kundenstrategie",
+      "title": "Kleine Firmen",
+      "requirement": "Self-Service SaaS.",
+      "status": "offen",
+      "evidence": "egnas.html",
+      "next_step": "Vollständige Umsetzung bzw. externe Konfiguration und Abnahme fehlen oder sind nicht nachgewiesen."
+    },
+    {
+      "id": 315,
+      "section": "W. Kundenstrategie",
+      "title": "Mittelstand",
+      "requirement": "Unternehmen mit ca. 100-1.000 Mitarbeitern als zentrale Business-Zielgruppe.",
+      "status": "offen",
+      "evidence": "egnas.html",
+      "next_step": "Vollständige Umsetzung bzw. externe Konfiguration und Abnahme fehlen oder sind nicht nachgewiesen."
+    },
+    {
+      "id": 316,
+      "section": "W. Kundenstrategie",
+      "title": "Großunternehmen",
+      "requirement": "Securitas, Pond, FraSec und vergleichbare Firmen als Enterprise-Zielgruppe.",
+      "status": "offen",
+      "evidence": "egnas.html",
+      "next_step": "Vollständige Umsetzung bzw. externe Konfiguration und Abnahme fehlen oder sind nicht nachgewiesen."
+    },
+    {
+      "id": 317,
+      "section": "W. Kundenstrategie",
+      "title": "Enterprise ARR Strategie",
+      "requirement": "Wenige große Kunden mit substanziellen Jahresverträgen und skalierbaren Add-ons.",
+      "status": "offen",
+      "evidence": "egnas.html",
+      "next_step": "Vollständige Umsetzung bzw. externe Konfiguration und Abnahme fehlen oder sind nicht nachgewiesen."
+    },
+    {
+      "id": 318,
+      "section": "X. Kundenportal",
+      "title": "Eigenes Kundenportal",
+      "requirement": "Kunde sieht nur freigegebene eigene Daten.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "kundenportal.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 319,
+      "section": "X. Kundenportal",
+      "title": "Dienstplanansicht",
+      "requirement": "Besetzung der Kundenobjekte.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "kundenportal.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 320,
+      "section": "X. Kundenportal",
+      "title": "Geleistete Stunden",
+      "requirement": "Transparente Leistungsübersicht.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "kundenportal.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 321,
+      "section": "X. Kundenportal",
+      "title": "Wachbuch",
+      "requirement": "Freigegebene Einträge.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "kundenportal.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 322,
+      "section": "X. Kundenportal",
+      "title": "Rundgänge",
+      "requirement": "WKS-Nachweise.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "kundenportal.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 323,
+      "section": "X. Kundenportal",
+      "title": "Vorfälle",
+      "requirement": "Freigegebene Incident Reports.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "kundenportal.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 324,
+      "section": "X. Kundenportal",
+      "title": "SLA/KPI",
+      "requirement": "Servicequalität transparent darstellen.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "kundenportal.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 325,
+      "section": "X. Kundenportal",
+      "title": "Rechnungen",
+      "requirement": "Übersicht und Download.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "kundenportal.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 326,
+      "section": "X. Kundenportal",
+      "title": "Ansprechpartner",
+      "requirement": "Klare Kommunikationsstruktur.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "kundenportal.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 327,
+      "section": "X. Kundenportal",
+      "title": "Reklamationen",
+      "requirement": "Tickets und Bearbeitungsstatus.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "kundenportal.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 328,
+      "section": "Y. Auftrags- und Vertragsmanagement",
+      "title": "Auftrag als eigene Entity",
+      "requirement": "Auftrag unabhängig vom Objekt als eigener Datensatz.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "commercial.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 329,
+      "section": "Y. Auftrags- und Vertragsmanagement",
+      "title": "Vertragsbeginn und Ende",
+      "requirement": "Laufzeiten verwalten.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "commercial.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 330,
+      "section": "Y. Auftrags- und Vertragsmanagement",
+      "title": "Kündigungsfrist",
+      "requirement": "Automatische Erinnerungen.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "commercial.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 331,
+      "section": "Y. Auftrags- und Vertragsmanagement",
+      "title": "Stundenkontingent",
+      "requirement": "Geplante Leistungsmenge.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "commercial.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 332,
+      "section": "Y. Auftrags- und Vertragsmanagement",
+      "title": "Verkaufspreis",
+      "requirement": "Stundenverrechnungssatz und Historie.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "commercial.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 333,
+      "section": "Y. Auftrags- und Vertragsmanagement",
+      "title": "Leistungsbeschreibung",
+      "requirement": "Vertraglicher Leistungsumfang.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "commercial.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 334,
+      "section": "Y. Auftrags- und Vertragsmanagement",
+      "title": "Vertrags-SLA",
+      "requirement": "Servicelevel je Vertrag.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "commercial.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 335,
+      "section": "Y. Auftrags- und Vertragsmanagement",
+      "title": "Preisänderungen",
+      "requirement": "Historie und Anpassungen.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "commercial.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 336,
+      "section": "Z. Kalkulation und Faktura",
+      "title": "Deckungsbeitragsrechnung",
+      "requirement": "Verkaufspreis minus echte Kosten.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "commercial.js, payroll.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 337,
+      "section": "Z. Kalkulation und Faktura",
+      "title": "Umsatz pro Objekt",
+      "requirement": "Finanzübersicht je Objekt.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "commercial.js, payroll.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 338,
+      "section": "Z. Kalkulation und Faktura",
+      "title": "Personalkosten",
+      "requirement": "Direkte Kosten berücksichtigen.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "commercial.js, payroll.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 339,
+      "section": "Z. Kalkulation und Faktura",
+      "title": "Sonstige Kosten",
+      "requirement": "Fahrzeug, Ausrüstung, Verwaltung etc.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "commercial.js, payroll.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 340,
+      "section": "Z. Kalkulation und Faktura",
+      "title": "Objektmarge",
+      "requirement": "Rentabilität sichtbar machen.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "commercial.js, payroll.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 341,
+      "section": "Z. Kalkulation und Faktura",
+      "title": "Automatische Faktura",
+      "requirement": "Freigegebene Stunden erzeugen Rechnungsentwurf.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "commercial.js, payroll.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 342,
+      "section": "Z. Kalkulation und Faktura",
+      "title": "Leistungsnachweis",
+      "requirement": "Nachweis zusammen mit Rechnung.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "commercial.js, payroll.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 343,
+      "section": "Z. Kalkulation und Faktura",
+      "title": "Rechnungsstatus",
+      "requirement": "Offen, bezahlt, teilweise bezahlt, überfällig.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "commercial.js, payroll.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 344,
+      "section": "Z. Kalkulation und Faktura",
+      "title": "Payroll Preparation",
+      "requirement": "Zeitdaten und Zuschläge für Lohnabrechnung vorbereiten.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "commercial.js, payroll.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 345,
+      "section": "AA. Recruiting",
+      "title": "Bewerbermanagement",
+      "requirement": "Bewerberprofile und Status.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "recruiting.js, hr-workflows.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 346,
+      "section": "AA. Recruiting",
+      "title": "Bewerberpipeline",
+      "requirement": "Bewerbung -> Prüfung -> Interview -> Einstellung.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "recruiting.js, hr-workflows.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 347,
+      "section": "AA. Recruiting",
+      "title": "Bewerberdokumente",
+      "requirement": "Lebenslauf, Qualifikationen, Nachweise.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "recruiting.js, hr-workflows.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 348,
+      "section": "AA. Recruiting",
+      "title": "Bewerber zu Mitarbeiter",
+      "requirement": "Mit einem Klick in Mitarbeiterstamm übernehmen.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "recruiting.js, hr-workflows.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 349,
+      "section": "AA. Recruiting",
+      "title": "Mitarbeiter-Onboarding",
+      "requirement": "Checklisten, Dokumente und Freigaben.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "recruiting.js, hr-workflows.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 350,
+      "section": "AB. Qualifikations-Engine",
+      "title": "Qualifikationsprüfung vor Einsatz",
+      "requirement": "Schicht nur mit passenden Mitarbeitern besetzen.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "compliance.js, dienstplan.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 351,
+      "section": "AB. Qualifikations-Engine",
+      "title": "Objektunterweisung als Einsatzvoraussetzung",
+      "requirement": "Ohne gültige Unterweisung keine Freigabe.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "compliance.js, dienstplan.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 352,
+      "section": "AB. Qualifikations-Engine",
+      "title": "Compliance Center",
+      "requirement": "Rot/Gelb/Grün-Übersicht über kritische Nachweise.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "compliance.js, dienstplan.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 353,
+      "section": "AB. Qualifikations-Engine",
+      "title": "Subunternehmer Management",
+      "requirement": "Nachunternehmer inklusive Personal, Dokumente, Compliance und Abrechnung.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "compliance.js, dienstplan.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 354,
+      "section": "AC. Live Operations",
+      "title": "Live Operations Map",
+      "requirement": "Status der Objekte und Einsätze auf Karte.",
+      "status": "teilweise",
+      "evidence": "operations.js, escalations.js",
+      "next_step": "Statusübersicht mit Kartenlinks, noch keine interaktive Live-Karte."
+    },
+    {
+      "id": 355,
+      "section": "AC. Live Operations",
+      "title": "Alarm- und Eskalationsengine",
+      "requirement": "Automatische Eskalationsketten bei Ausfällen und kritischen Ereignissen.",
+      "status": "teilweise",
+      "evidence": "operations.js, escalations.js",
+      "next_step": "Vorhandene Cron-Engine und Eskalationen; Alarmketten und Zustellnachweise noch end-to-end zu prüfen."
+    },
+    {
+      "id": 356,
+      "section": "AC. Live Operations",
+      "title": "Lone Worker",
+      "requirement": "Totmannfunktion und Sicherheitschecks für Einzelarbeitsplätze.",
+      "status": "teilweise",
+      "evidence": "operations.js, escalations.js",
+      "next_step": "Check-in-Start, Rückmeldung und Abschluss getestet. Kein Nachweis eines ausfallsicheren Totmannsystems oder einer Notrufzustellung."
+    },
+    {
+      "id": 357,
+      "section": "AC. Live Operations",
+      "title": "SOS Button",
+      "requirement": "Schnelle Notfallmeldung mit Einsatzbezug.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "operations.js, escalations.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 358,
+      "section": "AC. Live Operations",
+      "title": "Schichtübergabe",
+      "requirement": "Strukturierter Übergabeprozess.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "operations.js, escalations.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 359,
+      "section": "AD. Equipment und Inventar",
+      "title": "Schlüsselmanagement",
+      "requirement": "Ausgabe, Rückgabe und Bestand.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "equipment.js, operations.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 360,
+      "section": "AD. Equipment und Inventar",
+      "title": "Equipmentverwaltung",
+      "requirement": "Funkgeräte, Bodycams, Handys, Taschenlampen und sonstige Betriebsmittel.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "equipment.js, operations.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 361,
+      "section": "AD. Equipment und Inventar",
+      "title": "Aufgabenmanagement",
+      "requirement": "Aufgaben pro Objekt mit Frist und Verantwortlichem.",
+      "status": "implementiert_getestet",
+      "evidence": "tests/operations.browser.cjs",
+      "next_step": "Code-/Datenbanktests bestanden; Abnahme im veröffentlichten Frontend steht aus. Browsertests verwenden simulierte Backendantworten."
+    },
+    {
+      "id": 362,
+      "section": "AD. Equipment und Inventar",
+      "title": "Qualitätsmanagement",
+      "requirement": "Audits, Abweichungen und Maßnahmen.",
+      "status": "implementiert_getestet",
+      "evidence": "tests/operations.browser.cjs",
+      "next_step": "Code-/Datenbanktests bestanden; Abnahme im veröffentlichten Frontend steht aus. Browsertests verwenden simulierte Backendantworten."
+    },
+    {
+      "id": 363,
+      "section": "AD. Equipment und Inventar",
+      "title": "Kundenreklamationen",
+      "requirement": "Ticket-System für Beschwerden und Nachverfolgung.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "equipment.js, operations.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 364,
+      "section": "AD. Equipment und Inventar",
+      "title": "KPI Dashboard",
+      "requirement": "Operative Kennzahlen für Management und Kunden.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "equipment.js, operations.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 365,
+      "section": "AE. AI Command Center",
+      "title": "Ask A ONE",
+      "requirement": "Natürliche Sprache als zentrale Abfrage- und Steueroberfläche.",
+      "status": "offen",
+      "evidence": "operations.js",
+      "next_step": "Vollständige Umsetzung bzw. externe Konfiguration und Abnahme fehlen oder sind nicht nachgewiesen."
+    },
+    {
+      "id": 366,
+      "section": "AE. AI Command Center",
+      "title": "AI Incident Copilot",
+      "requirement": "Unstrukturierte Notizen in saubere Vorfallsberichte überführen.",
+      "status": "offen",
+      "evidence": "operations.js",
+      "next_step": "Vollständige Umsetzung bzw. externe Konfiguration und Abnahme fehlen oder sind nicht nachgewiesen."
+    },
+    {
+      "id": 367,
+      "section": "AE. AI Command Center",
+      "title": "AI Operations Monitor",
+      "requirement": "Personal-, SLA- und Einsatzrisiken erkennen.",
+      "status": "offen",
+      "evidence": "operations.js",
+      "next_step": "Vollständige Umsetzung bzw. externe Konfiguration und Abnahme fehlen oder sind nicht nachgewiesen."
+    },
+    {
+      "id": 368,
+      "section": "AE. AI Command Center",
+      "title": "Offline First",
+      "requirement": "Wachbuch, WKS, Incidents und Checklisten ohne Internet nutzbar machen.",
+      "status": "offen",
+      "evidence": "operations.js",
+      "next_step": "Vollständige Umsetzung bzw. externe Konfiguration und Abnahme fehlen oder sind nicht nachgewiesen."
+    },
+    {
+      "id": 369,
+      "section": "AE. AI Command Center",
+      "title": "Proof of Service",
+      "requirement": "Chronologischer Leistungsnachweis vom Dienstbeginn bis Dienstende.",
+      "status": "teilweise",
+      "evidence": "operations.js",
+      "next_step": "Chronologie für Zeiten, Wachbuch und Vorfälle mit CSV/Druck; WKS-Integration und vollständige Schichtkette fehlen."
+    },
+    {
+      "id": 370,
+      "section": "AE. AI Command Center",
+      "title": "Enterprise Audit Trail",
+      "requirement": "Jede relevante Änderung vollständig nachvollziehbar.",
+      "status": "teilweise",
+      "evidence": "operations.js",
+      "next_step": "Zusätzliche Audit-Trigger; vollständige manipulationsgeschützte Enterprise-Protokollierung nicht nachgewiesen."
+    },
+    {
+      "id": 371,
+      "section": "AF. Developer- und Automation-Plattform",
+      "title": "Developer Platform",
+      "requirement": "API Keys, OAuth, Webhooks, Sandbox und Integration Logs.",
+      "status": "teilweise",
+      "evidence": "operations.js, commercial.js",
+      "next_step": "Schlüsselgenerierung mit Hash, einmalige Anzeige, Sperrung und Logs; OAuth, Webhooks und Sandbox fehlen."
+    },
+    {
+      "id": 372,
+      "section": "AF. Developer- und Automation-Plattform",
+      "title": "CRM und Ausschreibungen",
+      "requirement": "Leadmanagement, Tender-Pipeline und Angebotsprozess.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "operations.js, commercial.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 373,
+      "section": "AF. Developer- und Automation-Plattform",
+      "title": "Angebotsgenerator",
+      "requirement": "Angebote aus Leistungsparametern erstellen.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "operations.js, commercial.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 374,
+      "section": "AF. Developer- und Automation-Plattform",
+      "title": "Einsatzkalkulator",
+      "requirement": "Personalbedarf, Kosten, Marge und Mindestpreis kalkulieren.",
+      "status": "vorhanden_ungeprueft",
+      "evidence": "operations.js, commercial.js",
+      "next_step": "Originalanforderung im passenden Modul mit echten Rollen und Daten abnehmen; Dateivorhandensein ist kein Funktionsnachweis."
+    },
+    {
+      "id": 375,
+      "section": "AF. Developer- und Automation-Plattform",
+      "title": "Forecasting",
+      "requirement": "Personal, Umsatz, Kosten und Kapazität prognostizieren.",
+      "status": "offen",
+      "evidence": "operations.js, commercial.js",
+      "next_step": "Vollständige Umsetzung bzw. externe Konfiguration und Abnahme fehlen oder sind nicht nachgewiesen."
+    },
+    {
+      "id": 376,
+      "section": "AF. Developer- und Automation-Plattform",
+      "title": "Regel-Engine",
+      "requirement": "Wenn-Dann-Regeln ohne Programmierung.",
+      "status": "teilweise",
+      "evidence": "operations.js, commercial.js",
+      "next_step": "Konfigurierbare vorhandene Trigger und Aktionen; reale zeitgesteuerte Ausführung noch end-to-end zu prüfen."
+    },
+    {
+      "id": 377,
+      "section": "AF. Developer- und Automation-Plattform",
+      "title": "Automation Builder",
+      "requirement": "Mehrstufige Workflows definieren.",
+      "status": "teilweise",
+      "evidence": "operations.js, commercial.js",
+      "next_step": "Einzelne Trigger-Aktion-Regeln; keine mehrstufigen Workflows."
+    },
+    {
+      "id": 378,
+      "section": "AF. Developer- und Automation-Plattform",
+      "title": "Form- und Checklist Builder",
+      "requirement": "Eigene Formulare und Prüfprozesse ohne Code.",
+      "status": "implementiert_getestet",
+      "evidence": "tests/operations.browser.cjs, tests/backend-integrity.sql",
+      "next_step": "Code-/Datenbanktests bestanden; Abnahme im veröffentlichten Frontend steht aus. Browsertests verwenden simulierte Backendantworten."
+    },
+    {
+      "id": 379,
+      "section": "AF. Developer- und Automation-Plattform",
+      "title": "No-Code Workflow Studio",
+      "requirement": "Komplette Prozesse visuell konfigurieren.",
+      "status": "offen",
+      "evidence": "operations.js, commercial.js",
+      "next_step": "Vollständige Umsetzung bzw. externe Konfiguration und Abnahme fehlen oder sind nicht nachgewiesen."
+    },
+    {
+      "id": 380,
+      "section": "AF. Developer- und Automation-Plattform",
+      "title": "A ONE Intelligence Layer",
+      "requirement": "Zentrale intelligente Schicht über Daten, Nutzer, Prozesse, Verträge, Personal, Objekte, Kosten, Compliance, Vorfälle und Reports.",
+      "status": "offen",
+      "evidence": "operations.js, commercial.js",
+      "next_step": "Vollständige Umsetzung bzw. externe Konfiguration und Abnahme fehlen oder sind nicht nachgewiesen."
+    }
+  ]
+}
