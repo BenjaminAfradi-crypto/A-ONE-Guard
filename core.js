@@ -67,7 +67,7 @@ const AONE = (() => {
     const r=await fetch(`${SUPABASE_URL}/auth/v1/user`,{method:'PUT',headers:{apikey:API_KEY,Authorization:`Bearer ${s.access_token}`,'Content-Type':'application/json'},body:JSON.stringify({password})});
     const data=await r.json().catch(()=>({})); if(!r.ok) throw new Error(data.message||'Passwort konnte nicht geändert werden'); return data;
   }
-  function signOut(){ setSession(null); setContext(null); localStorage.removeItem('aone_guard_org'); }
+  function signOut(){ localStorage.removeItem('aone_nfc_pending'); sessionStorage.removeItem('aone_nfc_last'); setSession(null); setContext(null); localStorage.removeItem('aone_guard_org'); }
 
   async function request(path,{method='GET',body=null,headers={},retry=true}={}){
     let s=await session(); if(!s) throw new Error('SESSION_REQUIRED');
@@ -139,3 +139,11 @@ const AONE = (() => {
 
   return {SUPABASE_URL,API_KEY,STRIPE_URL,qs,qsa,esc,money,dt,d,t,duration,monthKey,prevMonthKey,toast,loading,getSession,session,signIn,signUp,recover,updatePassword,signOut,request,table,insert,update,remove,storageUpload,storageBlob,openStorage,rpc,edge,memberships,chooseContext,isManager,roleLabel,geolocate,printNode,sleep};
 })();
+
+// One consistent entry point to all role-appropriate modules.
+document.addEventListener('DOMContentLoaded',()=>{
+ const actions=document.querySelector('.top-actions');
+ if(actions&&document.getElementById('logout')&&!actions.querySelector('[data-module-nav]')){
+  const link=document.createElement('a');link.href='./modules.html';link.className='btn small';link.dataset.moduleNav='true';link.textContent='Alle Module';actions.prepend(link);
+ }
+});

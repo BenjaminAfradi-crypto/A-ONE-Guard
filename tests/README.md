@@ -1,11 +1,11 @@
-# Dienstplan regression tests
+# Guard regression tests
 
 Requirements: Node.js 20+ and Playwright 1.62.1.
 
 ```sh
 npm install --no-save --package-lock=false playwright@1.62.1
 npx playwright install chromium
-node --test tests/dienstplan.browser.cjs
+node --test --test-concurrency=1 tests/*.browser.cjs
 ```
 
 The suite opens the real planner HTML, CSS, core client and planner JavaScript in Chromium. Every network request is intercepted; Supabase responses and writes are simulated. It requires no credentials and never writes to the live database.
@@ -16,6 +16,11 @@ Optional environment variables: `AONE_CHROMIUM_PATH` selects an installed Chromi
 
 ## Limits before production release
 
-The conflict check is a client preflight query against the saved shifts visible to the manager. It is not an atomic database constraint: concurrent writes by multiple dispatchers still require server-side enforcement. The repository does not contain the database schema, RLS policies or migrations needed to verify or implement that enforcement safely. Live Supabase integration, permissions and concurrent submissions have not been verified by this suite.
+Client preflight checks are now backed by the exclusion constraint in `supabase/migrations/20260921094206_guard_operational_integrity.sql`. The live SQL regression checks its presence and overlapping/adjacent shifts. A concurrent load test and the full role/RLS matrix remain outside this suite.
 
 Series are saved one shift at a time. The result reports individual failures; successful writes are retained. Retrying assigned shifts skips existing overlapping assignments. Unassigned shifts can intentionally coexist and are not deduplicated.
+
+
+The operations suite covers tasks, quality audits, form creation/submission/review, automation configuration, lone worker RPC flows, hashed API keys/revocation, mobile rendering, permission UI, error handling, pagination and escaping. The NFC suite simulates a lost response, retry, reload and a fresh scan. All browser network calls are intercepted.
+
+`backend-integrity.sql` must run on an existing Guard database with a management connection. It creates synthetic fixtures inside a transaction and rolls them back, including audit records. It is not a schema bootstrap or a complete RLS test.
