@@ -30,3 +30,31 @@ Die Intelligence-Seite ist ausdrücklich regelbasiert. Echte KI, Offline-Erfassu
 Nach den Änderungen meldet der Supabase Advisor keine anonym ausführbaren Guard-SECURITY-DEFINER-Funktionen mehr. Weiterhin 56 Warnungen zu authentifiziert ausführbaren privilegierten Funktionen: deren gezielte Freigabe ersetzt keine vollständige Prüfung der internen Autorisierung. Zwei Tabellen haben absichtlich RLS ohne direkte Policies (private NFC-Quittungen und Dokumentzähler; Zugriff erfolgt über geprüfte Funktionen). Schutz gegen kompromittierte Passwörter ist nicht aktiviert und bleibt ein Konfigurationspunkt.
 
 Hinweise: [Privilegierte Funktionen](https://supabase.com/docs/guides/database/database-linter?lint=0029_authenticated_security_definer_function_executable), [RLS ohne Policies](https://supabase.com/docs/guides/database/database-linter?lint=0008_rls_enabled_no_policy), [Passwortschutz](https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection).
+
+## Weiterentwicklung 28.09.2026 – Pilot-Zeitintegrität
+
+Aufbauend auf PR #2; keine Live-Datenbankänderung und kein Deployment.
+
+- Gemeinsame Nettozeitberechnung für Mitarbeiter, Arbeitszeitenverwaltung,
+  Command-Center-Zeitlisten und Payroll; Pausen werden auf Buchung/Zeitraum
+  begrenzt und überlappende Pausen nur einmal abgezogen.
+- Monatssummen teilen Nachtschichten an der Monatsgrenze. Mitarbeiterzeiten
+  werden explizit auf die eigene Mitarbeiter-ID gefiltert.
+- Vollständige paginierte Zeitabfragen in Mitarbeiteransicht, Arbeitszeiten und
+  Payroll; Pausen werden für die betroffenen Buchungen in kleinen Paketen geladen.
+  Ab 20.000 Datensätzen bricht eine Gesamtabfrage sichtbar ab.
+- Fehlende Pausendaten führen zu einer Fehlermeldung. Payroll sperrt Export
+  und Snapshot während des Ladens und nach Ladefehlern.
+- Deaktivierung bestätigt zuerst den serverseitigen Mitgliedschaftsstatus;
+  Aktivierung erteilt den Zugang zuletzt. Teilerfolge werden ausdrücklich
+  angezeigt. Der Stammdaten-Status ist nur über diesen Ablauf änderbar.
+- 15 neue Node-Regressionstests bestanden; Syntaxprüfung aller JS-Dateien und
+  git diff --check erfolgreich. Die vorhandenen 16 Chromium-Tests konnten in
+  dieser Umgebung nicht erneut ausgeführt werden: Browser fehlt, Download
+  liefert kein gültiges Archiv. Keine Aussage über deren aktuellen Erfolg.
+
+Weiter offen: atomare Statusänderung im Backend, vollständige RLS-Abnahme,
+reale Geräteprüfung, feste organisationsweite Berichtszeitzone (aktuell lokale
+Browser-Zeitzone), konsistente Snapshots bei parallel geänderten paginierten
+Daten. Das Command Center zeigt weiterhin begrenzte historische Listen;
+Monatsabrechnungen müssen die vollständige Payroll-Abfrage nutzen.

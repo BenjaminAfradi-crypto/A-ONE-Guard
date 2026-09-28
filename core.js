@@ -81,6 +81,44 @@ const AONE = (() => {
     return data;
   }
   async function table(name, query='select=*'){ return request(`/rest/v1/${name}?${query}`); }
+  // Bounded, stable pagination: never silently present a partial aggregate.
+  async function tableAll(name, query='select=*'){
+    const params=new URLSearchParams(query);
+    if(params.has('limit')||params.has('offset')) throw new Error('Vollständige Abfrage darf kein Limit enthalten.');
+    const order=params.get('order');params.set('order',order?`${order},id.asc`:'id.asc');
+    const rows=[];
+    for(let offset=0;offset<20000;offset+=500){
+      params.set('limit','500');params.set('offset',String(offset));
+      const page=await table(name,params.toString());
+      if(!Array.isArray(page))throw new Error('Unvollständige Serverantwort. Bitte erneut laden.');
+      rows.push(...page);if(page.length<500)return rows;
+    }
+    throw new Error('Zu viele Datensätze. Bitte den Zeitraum eingrenzen.');
+  }
+  async function entryBreaks(entries){
+    const ids=[...new Set(entries.map(e=>e.id))],rows=[];
+    for(let i=0;i<ids.length;i+=50){
+      const query=new URLSearchParams({select:'*',time_entry_id:`in.(${ids.slice(i,i+50).join(',')})`,order:'started_at.asc'});
+      rows.push(...await tableAll('guard_breaks',query.toString()));
+    }
+    return rows;
+  }
+  // Clip to the reporting period and union overlapping pauses before subtracting.
+  function entryHours(entry,breaks,{from=-Infinity,to=Infinity,now=Date.now()}={}){
+    const stamp=v=>typeof v==='number'?v:new Date(v).getTime();
+    const a=stamp(entry.clock_in_at),b=entry.clock_out_at?stamp(entry.clock_out_at):stamp(now);
+    if(!Number.isFinite(a)||!Number.isFinite(b)||b<a)throw new Error('Ungültige Zeitbuchung. Bitte korrigieren.');
+    const start=Math.max(a,stamp(from)),end=Math.min(b,stamp(to));
+    if(end<=start)return {gross:0,breaks:0,net:0};
+    const spans=breaks.filter(x=>x.time_entry_id===entry.id).map(x=>{
+      const left=stamp(x.started_at),right=x.ended_at?stamp(x.ended_at):b;
+      if(!Number.isFinite(left)||!Number.isFinite(right)||right<left)throw new Error('Ungültige Pause. Bitte korrigieren.');
+      return [Math.max(start,left),Math.min(end,right)];
+    }).filter(([l,r])=>r>l).sort((x,y)=>x[0]-y[0]);
+    let paused=0,lastEnd=start;
+    for(const [l,r] of spans){paused+=Math.max(0,r-Math.max(l,lastEnd));lastEnd=Math.max(lastEnd,r);}
+    return {gross:(end-start)/3600000,breaks:paused/3600000,net:(end-start-paused)/3600000};
+  }
   async function insert(name, row, returning=true){ return request(`/rest/v1/${name}`,{method:'POST',body:row,headers:{Prefer:returning?'return=representation':'return=minimal'}}); }
   async function update(name, query, row){ return request(`/rest/v1/${name}?${query}`,{method:'PATCH',body:row,headers:{Prefer:'return=representation'}}); }
   async function remove(name, query){ return request(`/rest/v1/${name}?${query}`,{method:'DELETE',headers:{Prefer:'return=minimal'}}); }
@@ -137,7 +175,7 @@ const AONE = (() => {
     w.document.close(); setTimeout(()=>w.print(),250);
   }
 
-  return {SUPABASE_URL,API_KEY,STRIPE_URL,qs,qsa,esc,money,dt,d,t,duration,monthKey,prevMonthKey,toast,loading,getSession,session,signIn,signUp,recover,updatePassword,signOut,request,table,insert,update,remove,storageUpload,storageBlob,openStorage,rpc,edge,memberships,chooseContext,isManager,roleLabel,geolocate,printNode,sleep};
+  return {SUPABASE_URL,API_KEY,STRIPE_URL,qs,qsa,esc,money,dt,d,t,duration,monthKey,prevMonthKey,toast,loading,getSession,session,signIn,signUp,recover,updatePassword,signOut,request,table,tableAll,entryBreaks,entryHours,insert,update,remove,storageUpload,storageBlob,openStorage,rpc,edge,memberships,chooseContext,isManager,roleLabel,geolocate,printNode,sleep};
 })();
 
 // One consistent entry point to all role-appropriate modules.

@@ -24,3 +24,15 @@ Series are saved one shift at a time. The result reports individual failures; su
 The operations suite covers tasks, quality audits, form creation/submission/review, automation configuration, lone worker RPC flows, hashed API keys/revocation, mobile rendering, permission UI, error handling, pagination and escaping. The NFC suite simulates a lost response, retry, reload and a fresh scan. All browser network calls are intercepted.
 
 `backend-integrity.sql` must run on an existing Guard database with a management connection. It creates synthetic fixtures inside a transaction and rolls them back, including audit records. It is not a schema bootstrap or a complete RLS test.
+
+## Pilot time integrity (no browser or dependencies)
+
+```sh
+node --test tests/time-integrity.test.cjs
+```
+
+15 tests exercise the actual shared calculation, paginated API client, employee
+access transition, payroll and time-management scripts with mocked API/DOM
+boundaries. Cases include pauses, overlap, corrected boundaries, open pauses,
+month rollover, DST, more than one API page, missing pause data, disabled exports
+and partial access-update failures. These do not prove RLS or real browser behavior.
