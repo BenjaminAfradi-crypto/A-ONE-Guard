@@ -36,3 +36,16 @@ access transition, payroll and time-management scripts with mocked API/DOM
 boundaries. Cases include pauses, overlap, corrected boundaries, open pauses,
 month rollover, DST, more than one API page, missing pause data, disabled exports
 and partial access-update failures. These do not prove RLS or real browser behavior.
+
+## Planning integrity (no browser or dependencies)
+
+```sh
+node --test tests/*.test.cjs
+```
+
+30 tests across time and planning integrity. The planning suite executes the
+actual planner functions with API/DOM boundaries simulated: approved absences,
+pending sickness, night shifts, midnight boundaries, mandatory qualification
+validity and renewal, unavailable checks, stale assignments, partial weekly
+release and copying into absences. Browser fixtures support the additional
+lookups, but browser execution still requires the documented Chromium setup.

@@ -51,7 +51,7 @@
   async function loadReferences(){
     const org=state.ctx.org_id;
     const [employees,sites]=await Promise.all([
-      AONE.table('guard_employees',`select=id,display_name,employee_no,email,qualification_level,status&org_id=eq.${encodeURIComponent(org)}&status=eq.active&order=display_name.asc`),
+      AONE.tableAll('guard_employees',`select=id,display_name,employee_no,email,qualification_level,status&org_id=eq.${encodeURIComponent(org)}&status=eq.active&order=display_name.asc`),
       AONE.table('guard_sites',`select=id,name,customer_name,address,active&org_id=eq.${encodeURIComponent(org)}&active=eq.true&order=name.asc`)
     ]);
     state.employees=employees||[];state.sites=sites||[];fillSelects();
@@ -59,7 +59,7 @@
 
   async function loadWeek(){
     const from=state.weekStart.toISOString(),to=weekEnd().toISOString();
-    state.shifts=await AONE.table('guard_shifts',`select=id,site_id,employee_id,title,starts_at,ends_at,required_qualification,status,notes,created_at&org_id=eq.${encodeURIComponent(state.ctx.org_id)}&starts_at=gte.${encodeURIComponent(from)}&starts_at=lt.${encodeURIComponent(to)}&order=starts_at.asc`)||[];
+    state.shifts=await AONE.tableAll('guard_shifts',`select=id,site_id,employee_id,title,starts_at,ends_at,required_qualification,status,notes,created_at&org_id=eq.${encodeURIComponent(state.ctx.org_id)}&starts_at=gte.${encodeURIComponent(from)}&starts_at=lt.${encodeURIComponent(to)}&order=starts_at.asc`)||[];
     render();
   }
 
@@ -110,8 +110,42 @@
     return {org_id:state.ctx.org_id,site_id:siteId,employee_id:employeeId||null,title:(title||site?.name||'Schicht').trim(),starts_at:start.toISOString(),ends_at:end.toISOString(),required_qualification:qual||'none',status,notes:notes?.trim()||null,created_by:state.user.id};
   }
 
+  // Calendar-day absence/qualification rules use the planner's local timezone.
+  function shiftDays(row){
+    const start=new Date(row.starts_at),end=new Date(row.ends_at);
+    if(!Number.isFinite(+start)||!Number.isFinite(+end)||end<=start)throw new Error('Ungültiger Dienstzeitraum.');
+    return {first:localDate(start),last:localDate(new Date(+end-1))};
+  }
+
+  async function checkAssignment(row){
+    const {first,last}=shiftDays(row),org=encodeURIComponent(state.ctx.org_id);
+    const sites=await AONE.table('guard_sites',`select=id,active&org_id=eq.${org}&id=eq.${encodeURIComponent(row.site_id)}&limit=1`);
+    if(!Array.isArray(sites)||sites.length!==1||!sites[0].active)throw new Error('Objekt ist nicht aktiv oder nicht verfügbar.');
+    if(!row.employee_id)return;
+    const employee=encodeURIComponent(row.employee_id);
+    const [employees,leaves,requirements,qualifications]=await Promise.all([
+      AONE.table('guard_employees',`select=id,status,qualification_level&org_id=eq.${org}&id=eq.${employee}&limit=1`),
+      AONE.tableAll('guard_leave_requests',`select=id,kind,status,starts_on,ends_on&org_id=eq.${org}&employee_id=eq.${employee}&starts_on=lte.${last}&ends_on=gte.${first}`),
+      AONE.tableAll('guard_compliance_requirements',`select=id,site_id,requirement_type,requirement_key,label,active,mandatory&org_id=eq.${org}&active=eq.true&mandatory=eq.true&requirement_type=eq.qualification`),
+      AONE.tableAll('guard_qualifications',`select=id,kind,valid_from,valid_until,verified_at&org_id=eq.${org}&employee_id=eq.${employee}`)
+    ]);
+    if(!Array.isArray(employees)||employees.length!==1||employees[0].status!=='active')throw new Error('Mitarbeiter ist nicht aktiv oder nicht verfügbar.');
+    if(!empEligible(employees[0],row.required_qualification))throw new Error('Die geforderte Qualifikationsstufe ist nicht erfüllt.');
+    const absence=leaves.find(l=>l.status==='approved'||(l.kind==='sick'&&l.status==='pending'));
+    if(absence)throw new Error(`${absence.kind==='sick'?'Krankmeldung':'Genehmigte Abwesenheit'}: ${absence.starts_on} bis ${absence.ends_on}. Bitte anders besetzen.`);
+    for(const requirement of requirements.filter(r=>!r.site_id||r.site_id===row.site_id)){
+      const valid=qualifications.some(q=>q.kind===requirement.requirement_key&&q.verified_at&&
+        (!q.valid_from||(/^\d{4}-\d{2}-\d{2}$/.test(q.valid_from)&&q.valid_from<=first))&&
+        (!q.valid_until||(/^\d{4}-\d{2}-\d{2}$/.test(q.valid_until)&&q.valid_until>=last)));
+      if(!valid)throw new Error(`Pflichtnachweis „${requirement.label||requirement.requirement_key}“ fehlt, ist ungeprüft oder deckt den Dienstzeitraum nicht ab.`);
+    }
+  }
+
   async function checkConflict(row,excludeId=''){
-    if(!row.employee_id||row.status==='canceled')return;
+    if(row.status==='canceled')return;
+    if(row.status==='confirmed'&&!row.employee_id)throw new Error('Unbesetzte Dienste können nicht freigegeben werden.');
+    await checkAssignment(row);
+    if(!row.employee_id)return;
     // Query the actual interval: the conflicting shift may start in another week.
     const query=new URLSearchParams({select:'id,starts_at,ends_at',org_id:`eq.${state.ctx.org_id}`,employee_id:`eq.${row.employee_id}`,status:'neq.canceled',starts_at:`lt.${row.ends_at}`,ends_at:`gt.${row.starts_at}`,limit:'1'});
     if(excludeId)query.set('id',`neq.${excludeId}`);
@@ -216,18 +250,40 @@
     setBusy(true);try{await checkConflict(row);await AONE.insert('guard_shifts',row,false);state.weekStart=startOfWeek(start);await refreshWeek();AONE.toast('Schicht kopiert.')}catch(err){AONE.toast(err.message,'err')}finally{setBusy(false)}
   }
 
+  async function releaseShift(id){
+    const org=encodeURIComponent(state.ctx.org_id);
+    const rows=await AONE.table('guard_shifts',`select=*&org_id=eq.${org}&id=eq.${encodeURIComponent(id)}&limit=1`);
+    if(!Array.isArray(rows)||rows.length!==1||rows[0].status!=='planned')throw new Error('Dienst wurde geändert oder ist nicht mehr geplant. Bitte neu laden.');
+    const row=rows[0];
+    if(!row.employee_id)throw new Error('Unbesetzte Dienste können nicht freigegeben werden.');
+    await checkConflict(row,id);
+    // Optimistic guard: do not release a different assignment edited during validation.
+    const query=new URLSearchParams({id:`eq.${id}`,org_id:`eq.${state.ctx.org_id}`,status:'eq.planned',employee_id:`eq.${row.employee_id}`,site_id:`eq.${row.site_id}`,starts_at:`eq.${row.starts_at}`,ends_at:`eq.${row.ends_at}`,required_qualification:row.required_qualification==null?'is.null':`eq.${row.required_qualification}`});
+    const saved=await AONE.update('guard_shifts',query.toString(),{status:'confirmed'});
+    if(!Array.isArray(saved)||saved.length!==1)throw new Error('Freigabe nicht bestätigt: Dienst oder Berechtigung wurde geändert. Bitte neu laden.');
+  }
+
   async function confirmOne(id){
-    setBusy(true);try{await AONE.update('guard_shifts',`id=eq.${encodeURIComponent(id)}&org_id=eq.${encodeURIComponent(state.ctx.org_id)}`,{status:'confirmed'});await loadWeek()}catch(err){AONE.toast(err.message,'err')}finally{setBusy(false)}
+    if(state.loading)return;setBusy(true);
+    try{await releaseShift(id);await refreshWeek();AONE.toast('Dienst freigegeben.');}
+    catch(err){message($('#planner-msg'),err.message,'err');AONE.toast(err.message,'err');}
+    finally{setBusy(false)}
   }
 
   async function confirmWeek(){
+    if(state.loading)return;
     const planned=state.shifts.filter(s=>s.status==='planned');if(!planned.length)return AONE.toast('Keine geplanten Schichten zum Freigeben.','warn');
-    if(!confirm(`${planned.length} geplante Schichten dieser Woche freigeben?`))return;
-    setBusy(true);try{
-      const from=state.weekStart.toISOString(),to=weekEnd().toISOString();
-      await AONE.update('guard_shifts',`org_id=eq.${encodeURIComponent(state.ctx.org_id)}&status=eq.planned&starts_at=gte.${encodeURIComponent(from)}&starts_at=lt.${encodeURIComponent(to)}`,{status:'confirmed'});
-      await loadWeek();AONE.toast('Woche freigegeben.');
-    }catch(err){AONE.toast(err.message,'err')}finally{setBusy(false)}
+    if(!confirm(`${planned.length} geplante Schichten prüfen und freigeben? Konflikte bleiben ungeändert.`))return;
+    setBusy(true);let released=0;const errors=[];
+    try{
+      for(const row of planned){
+        try{await releaseShift(row.id);released++;}
+        catch(err){errors.push(`${fmtDate(new Date(row.starts_at))} · ${row.title}: ${err.message}`);}
+      }
+      await refreshWeek();
+      message($('#planner-msg'),`${released} Dienste freigegeben · ${errors.length} nicht freigegeben.`,errors.length?'err':'ok');
+      if(errors.length)$('#planner-msg').insertAdjacentHTML('beforeend',`<details open><summary>Bitte prüfen</summary><ul>${errors.map(e=>`<li>${esc(e)}</li>`).join('')}</ul></details>`);
+    }finally{setBusy(false)}
   }
 
   async function copyWeek(){

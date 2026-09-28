@@ -58,3 +58,33 @@ reale Geräteprüfung, feste organisationsweite Berichtszeitzone (aktuell lokale
 Browser-Zeitzone), konsistente Snapshots bei parallel geänderten paginierten
 Daten. Das Command Center zeigt weiterhin begrenzte historische Listen;
 Monatsabrechnungen müssen die vollständige Payroll-Abfrage nutzen.
+
+## Weiterentwicklung 28.09.2026 – Dienstplan-Prüfungen
+
+Aufbauend auf PR #3. Keine Änderungen an der Live-Datenbank.
+
+- Anlegen, Bearbeiten, Serien und Kopien prüfen unmittelbar vor der Speicherung
+  den aktuellen Objekt-/Mitarbeiterstatus, die Qualifikationsstufe und Abwesenheiten.
+- Genehmigte Abwesenheiten und noch offene Krankmeldungen blockieren die
+  Zuweisung. Offene Urlaubsanträge und abgelehnte Meldungen blockieren nicht.
+- Aktive verpflichtende Qualifikationsanforderungen aus der Compliance-Verwaltung
+  gelten firmenweit oder für das passende Objekt. Ein geprüfter Nachweis muss den
+  gesamten Dienst abdecken; erneuerte Nachweise werden berücksichtigt. Weitere
+  Dokumentanforderungen sind noch nicht Bestandteil dieser Prüfung.
+- Nachtschichten prüfen alle berührten Kalendertage. Ein Ende exakt um Mitternacht
+  berührt den folgenden Tag nicht. Zeitzone bleibt die lokale Browser-Zeitzone.
+- Einzel- und Wochenfreigabe laden die Dienste erneut und prüfen sie vollständig.
+  Unbesetzte Dienste bleiben geplant. Wochenfreigaben melden einzelne Konflikte
+  und erhalten bereits erfolgreiche Freigaben. Ein bedingtes Update verhindert
+  die Freigabe einer inzwischen veränderten Zuweisung.
+- Mitarbeiterreferenzen und Wochenlisten werden vollständig paginiert geladen.
+- 15 neue Node-Tests bestanden; zusammen mit PR #3 sind es 30. Die vorhandenen
+  Browser-Fixtures wurden um die neuen Leseabfragen erweitert. Browserausführung
+  bleibt wegen fehlendem Chromium unbestätigt.
+
+Grenzen: Dies sind Vorabprüfungen im dedizierten Dienstplan. Sie ersetzen keine
+atomaren Backend-Regeln und gelten nicht automatisch für andere Schreibwege,
+insbesondere den älteren Command-Center-Editor oder direkte API-Aufrufe.
+Parallel nach der Prüfung genehmigte Abwesenheiten oder geänderte Nachweise
+können weiterhin eine erneute Prüfung erfordern. Serverseitige Absicherung,
+Ruhezeiten und Mindestbesetzung bleiben offene Pilotpunkte.

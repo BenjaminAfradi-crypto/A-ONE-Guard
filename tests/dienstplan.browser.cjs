@@ -21,7 +21,7 @@ async function setup(t, rows=[]) {
   await context.addInitScript(()=>localStorage.setItem('aone_guard_session_v1',JSON.stringify({access_token:'test-only',expires_at:9999999999999,user:{id:'user1'}})));
   function matches(row,params) {
     return [...params].every(([key,filter])=>{
-      if(['select','limit','order'].includes(key))return true;
+      if(['select','limit','offset','order'].includes(key))return true;
       const dot=filter.indexOf('.'),op=filter.slice(0,dot),value=filter.slice(dot+1);
       const a=key.endsWith('_at')?Date.parse(row[key]):String(row[key]);
       const b=key.endsWith('_at')?Date.parse(value):value;
@@ -45,6 +45,7 @@ async function setup(t, rows=[]) {
     if(table==='guard_organizations')return send([{id:'org1',name:'Testfirma'}]);
     if(table==='guard_employees')return send([{id:'emp1',display_name:'Testmitarbeiter',qualification_level:'sachkunde',status:'active'}]);
     if(table==='guard_sites')return send([{id:'site1',name:'Testobjekt',active:true}]);
+    if(['guard_leave_requests','guard_compliance_requirements','guard_qualifications'].includes(table))return send([]);
     assert.equal(table,'guard_shifts');
     if(request.method()==='POST')assert.equal(request.postDataJSON().org_id,'org1');
     else assert.equal(p.get('org_id'),'eq.org1');
@@ -52,7 +53,7 @@ async function setup(t, rows=[]) {
       db.queries.push(url.search);
       if(db.failCheck&&p.has('ends_at'))return send({message:'Konfliktprüfung offline'},503);
       let found=db.rows.filter(row=>matches(row,p));
-      if(p.has('limit'))found=found.slice(0,Number(p.get('limit')));
+      const offset=Number(p.get('offset')||0);found=found.slice(offset,p.has('limit')?offset+Number(p.get('limit')):undefined);
       return send(found);
     }
     const row=request.postDataJSON();
