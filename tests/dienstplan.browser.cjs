@@ -86,10 +86,12 @@ test('Weekday series: chosen dates only, preview, overnight end and mobile layou
   assert.equal(db.writes[0].ends_at,'2026-09-22T04:00:00.000Z');
   if(process.env.AONE_SCREENSHOT)await page.screenshot({path:process.env.AONE_SCREENSHOT,fullPage:true});
 });
-test('Prior-week overnight conflict blocks quick creation, adjacent shift allowed',async t=>{
+test('Prior-week conflict blocks quick creation; exact 11-hour rest boundary is allowed',async t=>{
   const {page,db}=await setup(t,[shift('night','2026-09-20','22:00','06:00',{ends_at:'2026-09-21T09:00:00+02:00'})]);
   await submit(page);assert.equal(db.writes.length,0);assert.match(await page.locator('#quick-msg').textContent(),/Überschneidung/);
-  await page.fill('#q-start','09:00');await submit(page);assert.equal(db.writes.length,1);
+  await page.fill('#q-start','19:59');await page.fill('#q-end','21:00');await submit(page);
+  assert.equal(db.writes.length,0);assert.match(await page.locator('#quick-msg').textContent(),/Ruhezeit unterschritten/);
+  await page.fill('#q-start','20:00');await page.fill('#q-end','21:00');await submit(page);assert.equal(db.writes.length,1);
 });
 test('Edit ignores itself but rejects another overlapping shift',async t=>{
   const {page,db}=await setup(t,[shift('first','2026-09-21'),shift('second','2026-09-21','16:00','20:00')]);
