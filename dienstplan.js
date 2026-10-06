@@ -25,8 +25,22 @@
   function staffingAt(shift){
     if(!shift||shift.status==='canceled')return null;
     const site=siteById(shift.site_id),required=Math.max(1,Number(site?.minimum_staff||1));
-    const start=new Date(shift.starts_at),end=new Date(shift.ends_at),point=new Date((+start+ +end)/2);
-    const assigned=state.shifts.filter(s=>s.status!=='canceled'&&s.site_id===shift.site_id&&s.employee_id&&new Date(s.starts_at)<=point&&new Date(s.ends_at)>point).length;
+    const start=+new Date(shift.starts_at),end=+new Date(shift.ends_at);
+    if(!Number.isFinite(start)||!Number.isFinite(end)||end<=start)return {required,assigned:0,under:true};
+    const candidates=state.shifts.filter(s=>s.status!=='canceled'&&s.site_id===shift.site_id&&s.employee_id&&+new Date(s.starts_at)<end&&+new Date(s.ends_at)>start);
+    const boundaries=[start,end];
+    for(const s of candidates){
+      boundaries.push(Math.max(start,+new Date(s.starts_at)),Math.min(end,+new Date(s.ends_at)));
+    }
+    const points=[...new Set(boundaries)].sort((a,b)=>a-b);
+    let assigned=Infinity;
+    for(let i=0;i<points.length-1;i++){
+      if(points[i+1]<=points[i])continue;
+      const midpoint=(points[i]+points[i+1])/2;
+      const count=candidates.filter(s=>+new Date(s.starts_at)<=midpoint&&+new Date(s.ends_at)>midpoint).length;
+      assigned=Math.min(assigned,count);
+    }
+    if(!Number.isFinite(assigned))assigned=0;
     return {required,assigned,under:assigned<required};
   }
   function setBusy(on){state.loading=on;document.body.classList.toggle('busy',on)}
