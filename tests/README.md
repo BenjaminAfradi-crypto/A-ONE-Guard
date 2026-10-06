@@ -70,3 +70,12 @@ The test rolls back all fixtures and audit rows. It assumes all Guard migrations
 The role-matrix dry run exposed that `guard_private.audit_guard_ops_change()` assumed every audited table had an `id` column. `guard_employee_private` uses `employee_id` as its primary key, so inserts could fail before RLS evaluation. Migration `20261006141000_guard_audit_generic_row_id.sql` fixes the generic trigger to resolve row identity safely from JSON data.
 
 The migration plus the RLS matrix were executed together inside a real Supabase transaction and fully rolled back; all matrix checks passed.
+
+
+### Membership mutation boundary
+
+The write portion of the RLS matrix also verifies that authenticated clients have no direct INSERT, UPDATE or DELETE privilege on `guard_memberships`. Membership mutations must go through the guarded SECURITY DEFINER RPCs.
+
+This closes a concrete bypass found during the pilot review: with the previous broad `guard_members_manage` policy, an admin could directly PATCH an owner's membership row through PostgREST and bypass the protections in `guard_set_member_role`. Migration `20261006142000_guard_membership_mutation_rpc_only.sql` removes direct membership DML while preserving guarded RPC flows.
+
+The combined audit-fix migration, membership-hardening migration and RLS matrix were executed in one real Supabase transaction. All 29 read/write checks passed and the transaction was rolled back.
