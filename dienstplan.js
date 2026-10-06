@@ -1,6 +1,6 @@
 (()=>{
   const $=s=>document.querySelector(s);
-  const state={ctx:null,user:null,employees:[],sites:[],shifts:[],weekStart:null,loading:false};
+  const state={ctx:null,user:null,employees:[],sites:[],shifts:[],weekStart:null,loading:false,minRestMinutes:660};
   const qualRank={none:0,unterrichtung:1,sachkunde:2};
   const qualLabel={none:'Keine Vorgabe',unterrichtung:'Unterrichtung',sachkunde:'Sachkunde'};
   const statusLabel={planned:'Geplant',confirmed:'Freigegeben',in_progress:'Läuft',completed:'Abgeschlossen',canceled:'Storniert'};
@@ -50,11 +50,14 @@
 
   async function loadReferences(){
     const org=state.ctx.org_id;
-    const [employees,sites]=await Promise.all([
+    const [employees,sites,organizations]=await Promise.all([
       AONE.tableAll('guard_employees',`select=id,display_name,employee_no,email,qualification_level,status&org_id=eq.${encodeURIComponent(org)}&status=eq.active&order=display_name.asc`),
-      AONE.table('guard_sites',`select=id,name,customer_name,address,active&org_id=eq.${encodeURIComponent(org)}&active=eq.true&order=name.asc`)
+      AONE.table('guard_sites',`select=id,name,customer_name,address,active&org_id=eq.${encodeURIComponent(org)}&active=eq.true&order=name.asc`),
+      AONE.table('guard_organizations',`select=id,min_rest_minutes&id=eq.${encodeURIComponent(org)}&limit=1`)
     ]);
-    state.employees=employees||[];state.sites=sites||[];fillSelects();
+    state.employees=employees||[];state.sites=sites||[];
+    state.minRestMinutes=Math.max(0,Number(organizations?.[0]?.min_rest_minutes??660));
+    fillSelects();
   }
 
   async function loadWeek(){
@@ -146,14 +149,36 @@
     if(row.status==='confirmed'&&!row.employee_id)throw new Error('Unbesetzte Dienste können nicht freigegeben werden.');
     await checkAssignment(row);
     if(!row.employee_id)return;
-    // Query the actual interval: the conflicting shift may start in another week.
-    const query=new URLSearchParams({select:'id,starts_at,ends_at',org_id:`eq.${state.ctx.org_id}`,employee_id:`eq.${row.employee_id}`,status:'neq.canceled',starts_at:`lt.${row.ends_at}`,ends_at:`gt.${row.starts_at}`,limit:'1'});
+
+    const start=new Date(row.starts_at),end=new Date(row.ends_at);
+    const restMinutes=Math.max(0,Number(state.minRestMinutes||0)),restMs=restMinutes*60000;
+    const query=new URLSearchParams({
+      select:'id,title,starts_at,ends_at',
+      org_id:`eq.${state.ctx.org_id}`,
+      employee_id:`eq.${row.employee_id}`,
+      status:'neq.canceled',
+      starts_at:`lt.${new Date(+end+restMs).toISOString()}`,
+      ends_at:`gt.${new Date(+start-restMs).toISOString()}`,
+      order:'starts_at.asc'
+    });
     if(excludeId)query.set('id',`neq.${excludeId}`);
-    const matches=await AONE.table('guard_shifts',query.toString());
+    const matches=await AONE.tableAll('guard_shifts',query.toString());
     if(!Array.isArray(matches))throw new Error('Konfliktprüfung nicht möglich. Bitte erneut versuchen.');
-    if(matches.length){
-      const s=matches[0],a=new Date(s.starts_at),b=new Date(s.ends_at);
-      throw new Error(`Überschneidung: ${fmtDate(a)} ${localTime(a)} bis ${fmtDate(b)} ${localTime(b)}. Bitte einen anderen Mitarbeiter oder Zeitraum wählen.`);
+
+    for(const s of matches){
+      const a=new Date(s.starts_at),b=new Date(s.ends_at);
+      if(a<end&&b>start){
+        throw new Error(`Überschneidung: ${fmtDate(a)} ${localTime(a)} bis ${fmtDate(b)} ${localTime(b)}. Bitte einen anderen Mitarbeiter oder Zeitraum wählen.`);
+      }
+      const gapMs=a>=end?a-end:start-b;
+      if(gapMs<restMs){
+        const gapMinutes=Math.max(0,Math.floor(gapMs/60000));
+        const h=Math.floor(gapMinutes/60),m=gapMinutes%60;
+        const actual=`${h} Std.${m?` ${m} Min.`:''}`;
+        const minH=Math.floor(restMinutes/60),minM=restMinutes%60;
+        const required=`${minH} Std.${minM?` ${minM} Min.`:''}`;
+        throw new Error(`Ruhezeit unterschritten: ${actual} statt mindestens ${required}. Bitte den Dienst verschieben oder anders besetzen.`);
+      }
     }
   }
 
