@@ -102,3 +102,12 @@ Aufbauend auf dem konsolidierten Pilot-PR. Keine dauerhafte Änderung an der Liv
 - Migration und RLS-Matrix wurden gemeinsam in einer echten Datenbanktransaktion ausgeführt und vollständig zurückgerollt.
 
 Weiter offen: vollständige Schreibmatrix für sämtliche RPC-/Tabellenaktionen, reale Rollen-Abnahme mit Pilotkonten und dauerhafte Anwendung der neuen Migrationen vor Live-Nutzung.
+
+
+### Ergänzung – Membership-Schreibschutz
+
+Die Schreibprüfung der Rollenmatrix hat einen weiteren sicherheitsrelevanten Bypass nachgewiesen: Die bisherige `guard_members_manage`-Policy erlaubte Owner/Admin direkten Tabellenzugriff auf `guard_memberships`. Dadurch konnte ein Admin die Rolle eines Owners direkt per PostgREST ändern und die Schutzlogik von `guard_set_member_role` umgehen.
+
+Migration `20261006142000_guard_membership_mutation_rpc_only.sql` entfernt direkte INSERT/UPDATE/DELETE-Rechte für `authenticated` auf `guard_memberships` und lässt Rollen-/Aktivitätsänderungen ausschließlich über die vorhandenen geschützten SECURITY-DEFINER-RPCs laufen.
+
+Die erweiterte Rollenmatrix umfasst jetzt 29 Lese-/Schreibprüfungen. In einer realen, vollständig zurückgerollten Supabase-Transaktion bestanden alle Prüfungen; insbesondere blieb die Owner-Rolle geschützt, während eine zulässige Admin-Änderung von Dispatcher zu Mitarbeiter über den RPC weiterhin funktionierte.
