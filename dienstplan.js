@@ -334,6 +334,31 @@
     }finally{setBusy(false)}
   }
 
+  function openPlanningSettings(){
+    if(!['owner','admin'].includes(state.ctx?.role))return;
+    const hours=state.minRestMinutes/60;
+    $('#f-rest-hours').value=Number.isInteger(hours)?String(hours):hours.toFixed(2).replace(/0+$/,'').replace(/\.$/,'');
+    $('#rest-rule-preview').textContent=`${state.minRestMinutes} Minuten · ${hours.toLocaleString('de-DE',{maximumFractionDigits:2})} Stunden`;
+    message($('#settings-msg'),'');
+    openModal('#settings-modal');
+  }
+
+  async function savePlanningSettings(e){
+    e.preventDefault();
+    if(!['owner','admin'].includes(state.ctx?.role))return message($('#settings-msg'),'Nur Inhaber/Admin dürfen die Planungsregeln ändern.','err');
+    const hours=Number($('#f-rest-hours').value);
+    if(!Number.isFinite(hours)||hours<0||hours>24)return message($('#settings-msg'),'Bitte 0 bis 24 Stunden angeben.','err');
+    const minutes=Math.round(hours*60);
+    setBusy(true);
+    try{
+      const saved=await AONE.update('guard_organizations',`id=eq.${encodeURIComponent(state.ctx.org_id)}`,{min_rest_minutes:minutes});
+      if(!Array.isArray(saved)||saved.length!==1)throw new Error('Planungsregel wurde nicht bestätigt.');
+      state.minRestMinutes=minutes;
+      closeModal('#settings-modal');
+      AONE.toast(`Mindestruhezeit auf ${hours.toLocaleString('de-DE',{maximumFractionDigits:2})} Stunden gesetzt.`);
+    }catch(err){message($('#settings-msg'),err.message,'err')}finally{setBusy(false)}
+  }
+
   async function createSite(e){
     e.preventDefault();message($('#site-msg'),'');const name=$('#s-name').value.trim();if(!name)return;
     setBusy(true);try{
@@ -352,6 +377,7 @@
     $('#filter-site').addEventListener('change',render);$('#filter-employee').addEventListener('change',render);$('#show-canceled').addEventListener('change',render);
     $('#prev-week').onclick=()=>navigateWeek(addDays(state.weekStart,-7));$('#next-week').onclick=()=>navigateWeek(addDays(state.weekStart,7));$('#today-week').onclick=()=>navigateWeek(startOfWeek());
     $('#add-site').onclick=()=>{message($('#site-msg'),'');openModal('#site-modal')};$('#close-site').onclick=()=>closeModal('#site-modal');$('#close-edit').onclick=()=>closeModal('#shift-modal');$('#cancel-shift').onclick=cancelShift;$('#confirm-week').onclick=confirmWeek;$('#copy-week').onclick=copyWeek;
+    $('#planning-settings').onclick=openPlanningSettings;$('#close-settings').onclick=()=>closeModal('#settings-modal');$('#settings-form').onsubmit=savePlanningSettings;
     $('#week-grid').addEventListener('click',e=>{const id=e.target.dataset.id;if(e.target.classList.contains('edit-shift'))openEdit(id);else if(e.target.classList.contains('copy-shift'))cloneShift(id,1);else if(e.target.classList.contains('confirm-shift'))confirmOne(id);else{const card=e.target.closest('.shift');if(card&&!e.target.closest('button'))openEdit(card.dataset.id)}});
     document.querySelectorAll('.planner-modal').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open')}));
     $('#logout').onclick=()=>{AONE.signOut();location.replace('./admin-login.html')};
@@ -363,6 +389,7 @@
       const session=await AONE.session();if(!session){location.replace('./admin-login.html');return}state.user=session.user;
       const ctx=await AONE.chooseContext();if(!ctx||!AONE.isManager(ctx.role)){location.replace('./admin-login.html');return}state.ctx=ctx;
       $('#org-name').textContent=ctx.org?.name||'Dienstplan';$('#who').textContent=ctx.role?AONE.roleLabel(ctx.role):'';
+      $('#planning-settings').hidden=!['owner','admin'].includes(ctx.role);
       state.weekStart=startOfWeek();$('#q-date').value=localDate(new Date());$('#q-until').value=localDate(addDays(new Date(),27));bind();quickPreview();await loadReferences();employeeOptionsForQual($('#q-employee'),'none','');await loadWeek();
     }catch(err){message($('#planner-msg'),err.message||'Dienstplan konnte nicht geladen werden.','err')}finally{setBusy(false)}
   }
