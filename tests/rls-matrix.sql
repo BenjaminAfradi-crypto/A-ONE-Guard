@@ -104,6 +104,55 @@ insert into rls_results values(
  case when has_table_privilege('authenticated','public.guard_question_keys','select') then 1 else 0 end,
  0
 );
+insert into rls_results values(
+ 'all','membership_direct_insert_grant',
+ case when has_table_privilege('authenticated','public.guard_memberships','insert') then 1 else 0 end,
+ 0
+);
+insert into rls_results values(
+ 'all','membership_direct_update_grant',
+ case when has_table_privilege('authenticated','public.guard_memberships','update') then 1 else 0 end,
+ 0
+);
+insert into rls_results values(
+ 'all','membership_direct_delete_grant',
+ case when has_table_privilege('authenticated','public.guard_memberships','delete') then 1 else 0 end,
+ 0
+);
+
+set local role authenticated;
+select set_config('request.jwt.claim.sub','aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa2',true);
+do $membership_rpc$
+declare
+  rejected boolean:=false;
+  changed text;
+begin
+  begin
+    perform public.guard_set_member_role(
+      '11111111-1111-4111-8111-111111111111',
+      'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa1',
+      'employee'
+    );
+  exception when others then
+    rejected:=true;
+  end;
+  insert into rls_results values('admin','rpc_owner_role_change_rejected',case when rejected then 1 else 0 end,1);
+
+  changed:=public.guard_set_member_role(
+    '11111111-1111-4111-8111-111111111111',
+    'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa3',
+    'employee'
+  );
+  insert into rls_results values('admin','rpc_dispatcher_role_change',case when changed='employee' then 1 else 0 end,1);
+end
+$membership_rpc$;
+
+reset role;
+insert into rls_results
+select 'all','owner_role_preserved',case when role='owner' then 1 else 0 end,1
+from public.guard_memberships
+where org_id='11111111-1111-4111-8111-111111111111'
+  and user_id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa1';
 
 do $assert$
 begin
