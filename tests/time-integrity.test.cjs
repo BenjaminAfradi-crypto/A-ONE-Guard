@@ -48,22 +48,29 @@ test('pause requests batch entry IDs and propagate failures',async()=>{
  await assert.rejects(core(async()=>Response.json({message:'pause unavailable'},{status:503})).entryBreaks([e]),/pause unavailable/);
 });
 // Execute the actual access transition function with injected API/DOM boundaries.
-async function toggle({status='active',rpcFails=false,profileFails=false,confirmed=true}={}){
+async function toggle({status='active',rpcFails=false,employeeConfirmed=true,accessConfirmed=true,userId='u'}={}){
  const nodes=new Map(),events=[],messages=[];const $=k=>{if(!nodes.has(k))nodes.set(k,{disabled:false});return nodes.get(k)};
- const state={current:{id:'e',user_id:'u',status},ctx:{org_id:'org'}};
- const ctx=vm.createContext({$,state,encodeURIComponent,msg:(_el,m)=>messages.push(m),close:()=>events.push('close'),load:async()=>events.push('reload'),AONE:{loading(){},toast:(m,kind)=>messages.push({m,kind}),rpc:async()=>{events.push('access');if(rpcFails)throw Error('RPC failed')},table:async()=>[{active:confirmed?(status!=='active'):(status==='active')}],update:async()=>{events.push('profile');if(profileFails)throw Error('PATCH failed');return [{id:'e'}]}}});
+ const next=status==='active'?'inactive':'active';
+ const state={current:{id:'e',user_id:userId,status},ctx:{org_id:'org'}};
+ const ctx=vm.createContext({$,state,encodeURIComponent,msg:(_el,m)=>messages.push(m),close:()=>events.push('close'),load:async()=>events.push('reload'),AONE:{
+  loading(){},toast:(m,kind)=>messages.push({m,kind}),
+  rpc:async(name,args)=>{events.push('atomic');assert.equal(name,'guard_set_employee_active');assert.equal(args.p_employee,'e');assert.equal(args.p_active,next==='active');if(rpcFails)throw Error('RPC failed');return {employee_status:next};},
+  table:async(name)=>{events.push(name);if(name==='guard_employees')return [{id:'e',status:employeeConfirmed?next:status,user_id:userId}];if(name==='guard_memberships')return [{active:accessConfirmed?(next==='active'):!(next==='active')}];throw Error('unexpected table '+name);}
+ }});
  const s=fs.readFileSync(path.join(root,'mitarbeiter.js'),'utf8');vm.runInContext(s.slice(s.indexOf('async function toggleActive()'),s.indexOf('async function savePrivate()')),ctx);await vm.runInContext('toggleActive()',ctx);return {events,messages,nodes};
 }
-test('failed access revocation does not mark employee inactive or show success',async()=>{
- const r=await toggle({rpcFails:true});assert.deepEqual(r.events,['access']);assert.ok(r.messages.some(x=>x.kind==='err'));assert.equal(r.nodes.get('#toggle-active').disabled,false);
+test('failed atomic employee activation leaves the UI retryable and reports the error',async()=>{
+ const r=await toggle({rpcFails:true});assert.deepEqual(r.events,['atomic']);assert.ok(r.messages.some(x=>x.kind==='err'));assert.equal(r.nodes.get('#toggle-active').disabled,false);
 });
-test('deactivation revokes and confirms access before updating employee status',async()=>{
- assert.deepEqual((await toggle()).events,['access','profile','reload','close']);
- assert.deepEqual((await toggle({confirmed:false})).events,['access']);
+test('linked employee activation verifies profile and membership after the atomic RPC',async()=>{
+ const r=await toggle();assert.deepEqual(r.events,['atomic','guard_employees','guard_memberships','reload','close']);
 });
-test('activation grants access last; partial failure is clearly reported',async()=>{
- const r=await toggle({status:'inactive',rpcFails:true});assert.deepEqual(r.events,['profile','access']);assert.ok(r.messages.some(x=>typeof x==='string'&&x.includes('Personalstatus gespeichert; Zugang nicht bestätigt')));
- const s=await toggle({profileFails:true});assert.ok(s.messages.some(x=>typeof x==='string'&&x.includes('Zugangsstatus gespeichert')));
+test('employee without login skips membership verification',async()=>{
+ const r=await toggle({userId:null});assert.deepEqual(r.events,['atomic','guard_employees','reload','close']);
+});
+test('missing server confirmation is visible and does not show success',async()=>{
+ const r=await toggle({employeeConfirmed:false});assert.deepEqual(r.events,['atomic','guard_employees']);assert.ok(r.messages.some(x=>x.kind==='err'));
+ const m=await toggle({accessConfirmed:false});assert.deepEqual(m.events,['atomic','guard_employees','guard_memberships']);assert.ok(m.messages.some(x=>x.kind==='err'));
 });
 function pageContext(api){
  const elements=new Map();const node=id=>{if(!elements.has(id))elements.set(id,{value:'',textContent:'',innerHTML:'',disabled:false,classList:{add(){},remove(){}}});return elements.get(id)};
