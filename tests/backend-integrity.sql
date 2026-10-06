@@ -3,15 +3,15 @@
 begin;
 do $test$
 declare
- a uuid:=gen_random_uuid(); b uuid:=gen_random_uuid(); u uuid:=gen_random_uuid(); outsider uuid:=gen_random_uuid();
- e uuid:=gen_random_uuid(); site uuid:=gen_random_uuid(); foreign_site uuid:=gen_random_uuid();
+ a uuid:=gen_random_uuid(); b uuid:=gen_random_uuid(); u uuid:=gen_random_uuid(); outsider uuid:=gen_random_uuid(); worker_user uuid:=gen_random_uuid();
+ e uuid:=gen_random_uuid(); worker_e uuid:=gen_random_uuid(); site uuid:=gen_random_uuid(); inactive_site uuid:=gen_random_uuid(); foreign_site uuid:=gen_random_uuid();
  template uuid:=gen_random_uuid(); task uuid:=gen_random_uuid(); session_id uuid:=gen_random_uuid(); rejected boolean; tag jsonb; first_result jsonb; repeat_result jsonb; request_id uuid:=gen_random_uuid();
 begin
- insert into auth.users(id,email) values(u,'guard-test-'||u||'@example.invalid'),(outsider,'guard-test-'||outsider||'@example.invalid');
+ insert into auth.users(id,email) values(u,'guard-test-'||u||'@example.invalid'),(outsider,'guard-test-'||outsider||'@example.invalid'),(worker_user,'guard-test-'||worker_user||'@example.invalid');
  insert into public.guard_organizations(id,name,slug) values(a,'Synthetic test A','test-'||a),(b,'Synthetic test B','test-'||b);
- insert into public.guard_memberships(org_id,user_id,role) values(a,u,'owner');
- insert into public.guard_employees(id,org_id,user_id,display_name,status) values(e,a,u,'Synthetic worker','active');
- insert into public.guard_sites(id,org_id,name) values(site,a,'Synthetic site'),(foreign_site,b,'Foreign synthetic site');
+ insert into public.guard_memberships(org_id,user_id,role) values(a,u,'owner'),(a,worker_user,'employee');
+ insert into public.guard_employees(id,org_id,user_id,display_name,status) values(e,a,u,'Synthetic owner worker','active'),(worker_e,a,worker_user,'Synthetic employee','active');
+ insert into public.guard_sites(id,org_id,name,active) values(site,a,'Synthetic site',true),(inactive_site,a,'Inactive synthetic site',false),(foreign_site,b,'Foreign synthetic site',true);
  perform set_config('request.jwt.claim.sub',u::text,true);
  update public.guard_organizations set min_rest_minutes=660 where id=a;
  insert into public.guard_shifts(org_id,site_id,employee_id,title,starts_at,ends_at) values(a,site,e,'Test','2030-01-01 08:00Z','2030-01-01 16:00Z');
@@ -29,6 +29,25 @@ begin
  if not rejected then raise exception 'FAIL 10h59 rest period was accepted'; end if;
  insert into public.guard_shifts(org_id,site_id,employee_id,title,starts_at,ends_at) values(a,site,e,'Rest boundary','2030-01-02 03:00Z','2030-01-02 04:00Z');
  if not exists(select 1 from pg_constraint where conrelid='public.guard_shifts'::regclass and conname='guard_shifts_no_employee_overlap' and contype='x') then raise exception 'FAIL atomic exclusion constraint missing'; end if;
+ rejected:=false;
+ begin
+  insert into public.guard_shifts(org_id,site_id,title,starts_at,ends_at,status) values(a,site,'Unassigned confirmed','2030-01-03 08:00Z','2030-01-03 16:00Z','confirmed');
+ exception when others then rejected:=true;
+ end;
+ if not rejected then raise exception 'FAIL confirmed unassigned shift was accepted'; end if;
+ rejected:=false;
+ begin
+  insert into public.guard_shifts(org_id,site_id,title,starts_at,ends_at) values(a,inactive_site,'Inactive object','2030-01-03 08:00Z','2030-01-03 16:00Z');
+ exception when others then rejected:=true;
+ end;
+ if not rejected then raise exception 'FAIL shift on inactive object was accepted'; end if;
+
+ perform public.guard_set_employee_active(a,worker_e,false);
+ if (select status from public.guard_employees where id=worker_e)<>'inactive' then raise exception 'FAIL employee profile was not deactivated atomically'; end if;
+ if (select active from public.guard_memberships where org_id=a and user_id=worker_user) is distinct from false then raise exception 'FAIL employee access was not deactivated atomically'; end if;
+ perform public.guard_set_employee_active(a,worker_e,true);
+ if (select status from public.guard_employees where id=worker_e)<>'active' then raise exception 'FAIL employee profile was not reactivated atomically'; end if;
+ if (select active from public.guard_memberships where org_id=a and user_id=worker_user) is distinct from true then raise exception 'FAIL employee access was not reactivated atomically'; end if;
  rejected:=false;
  begin
   insert into public.guard_tasks(org_id,site_id,title) values(a,foreign_site,'Cross-tenant task');
@@ -61,5 +80,5 @@ begin
  if not rejected then raise exception 'FAIL NFC request accepted changed payload'; end if;
  if exists(select 1 from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='public' and p.proname like 'guard_%' and has_function_privilege('anon',p.oid,'execute')) then raise exception 'FAIL anonymous RPC execute still allowed'; end if;
 end $test$;
-select 'PASS: overlap/rest integrity, tenant links, outsider denial, required fields, form snapshot, anonymous RPC grants and NFC retries' as result;
+select 'PASS: overlap/rest integrity, active-object and assignment guards, atomic employee access, tenant links, outsider denial, required fields, form snapshot, anonymous RPC grants and NFC retries' as result;
 rollback;
