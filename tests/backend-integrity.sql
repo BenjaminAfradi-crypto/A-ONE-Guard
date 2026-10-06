@@ -13,6 +13,7 @@ begin
  insert into public.guard_employees(id,org_id,user_id,display_name,status) values(e,a,u,'Synthetic worker','active');
  insert into public.guard_sites(id,org_id,name) values(site,a,'Synthetic site'),(foreign_site,b,'Foreign synthetic site');
  perform set_config('request.jwt.claim.sub',u::text,true);
+ update public.guard_organizations set min_rest_minutes=660 where id=a;
  insert into public.guard_shifts(org_id,site_id,employee_id,title,starts_at,ends_at) values(a,site,e,'Test','2030-01-01 08:00Z','2030-01-01 16:00Z');
  rejected:=false;
  begin
@@ -20,7 +21,13 @@ begin
  exception when others then rejected:=true;
  end;
  if not rejected then raise exception 'FAIL overlapping shift was accepted'; end if;
- insert into public.guard_shifts(org_id,site_id,employee_id,title,starts_at,ends_at) values(a,site,e,'Adjacent','2030-01-01 16:00Z','2030-01-01 18:00Z');
+ rejected:=false;
+ begin
+  insert into public.guard_shifts(org_id,site_id,employee_id,title,starts_at,ends_at) values(a,site,e,'Rest too short','2030-01-02 02:59Z','2030-01-02 04:00Z');
+ exception when others then rejected:=true;
+ end;
+ if not rejected then raise exception 'FAIL 10h59 rest period was accepted'; end if;
+ insert into public.guard_shifts(org_id,site_id,employee_id,title,starts_at,ends_at) values(a,site,e,'Rest boundary','2030-01-02 03:00Z','2030-01-02 04:00Z');
  if not exists(select 1 from pg_constraint where conrelid='public.guard_shifts'::regclass and conname='guard_shifts_no_employee_overlap' and contype='x') then raise exception 'FAIL atomic exclusion constraint missing'; end if;
  rejected:=false;
  begin
@@ -54,5 +61,5 @@ begin
  if not rejected then raise exception 'FAIL NFC request accepted changed payload'; end if;
  if exists(select 1 from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='public' and p.proname like 'guard_%' and has_function_privilege('anon',p.oid,'execute')) then raise exception 'FAIL anonymous RPC execute still allowed'; end if;
 end $test$;
-select 'PASS: conflicts, adjacency, tenant links, outsider denial, required fields, form snapshot anonymous RPC grants and NFC retries' as result;
+select 'PASS: overlap/rest integrity, tenant links, outsider denial, required fields, form snapshot, anonymous RPC grants and NFC retries' as result;
 rollback;
