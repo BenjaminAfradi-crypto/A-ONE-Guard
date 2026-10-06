@@ -37,7 +37,7 @@
     for(let i=0;i<points.length-1;i++){
       if(points[i+1]<=points[i])continue;
       const midpoint=(points[i]+points[i+1])/2;
-      const count=candidates.filter(s=>+new Date(s.starts_at)<=midpoint&&+new Date(s.ends_at)>midpoint).length;
+      const count=new Set(candidates.filter(s=>+new Date(s.starts_at)<=midpoint&&+new Date(s.ends_at)>midpoint).map(s=>s.employee_id)).size;
       assigned=Math.min(assigned,count);
     }
     if(!Number.isFinite(assigned))assigned=0;
