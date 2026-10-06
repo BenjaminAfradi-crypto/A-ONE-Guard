@@ -47,7 +47,13 @@ const GuardUI = (() => {
       e.preventDefault();if(!save||saving)return;saving=true;
       const form=e.currentTarget,data=new FormData(form),error=$('#editor-error');error.hidden=true;
       form.querySelectorAll('button').forEach(b=>b.disabled=true);
-      try {await save(data,form);modal.close();message('Gespeichert.');try{await state.reload()}catch(err){message('Gespeichert, aber die Ansicht konnte nicht aktualisiert werden: '+err.message,'err')}}
+      try {
+        await save(data,form);
+        const content=$('#module-content');content?.setAttribute('aria-busy','true');
+        modal.close();message('Gespeichert.');
+        try{await state.reload()}catch(err){message('Gespeichert, aber die Ansicht konnte nicht aktualisiert werden: '+err.message,'err')}
+        finally{content?.setAttribute('aria-busy','false');}
+      }
       catch(err){error.textContent=err.message;error.hidden=false;}
       finally {saving=false;form.querySelectorAll('button').forEach(b=>b.disabled=false);}
     };
