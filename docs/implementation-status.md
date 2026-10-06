@@ -88,3 +88,17 @@ insbesondere den älteren Command-Center-Editor oder direkte API-Aufrufe.
 Parallel nach der Prüfung genehmigte Abwesenheiten oder geänderte Nachweise
 können weiterhin eine erneute Prüfung erfordern. Serverseitige Absicherung,
 Ruhezeiten und Mindestbesetzung bleiben offene Pilotpunkte.
+
+
+## Weiterentwicklung 06.10.2026 – RLS-Rollenmatrix und Audit-Fix
+
+Aufbauend auf dem konsolidierten Pilot-PR. Keine dauerhafte Änderung an der Live-Datenbank.
+
+- Neue transaktionale RLS-Rollenmatrix für Owner, Admin, Dispatcher, Mitarbeiter und firmenfremde Nutzer.
+- Geprüft werden Organisations-, Membership-, Mitarbeiter-, Objekt-, Dienst-, Dokument- und private HR-Sichtbarkeit sowie der fehlende direkte Client-Zugriff auf die Lösungsschlüssel der Lernwelt.
+- Die Matrix wurde mit dem echten PostgreSQL-Rollenkontext `authenticated` und wechselnden JWT-Subjects gegen das bestehende Supabase-Projekt ausgeführt. Alle definierten Sichtbarkeitsprüfungen bestanden.
+- Der Test deckte einen echten Fehler im generischen Audit-Trigger auf: `guard_employee_private` besitzt keinen `id`-Schlüssel, der Trigger griff aber pauschal auf `NEW.id` zu. Dadurch konnten Schreibvorgänge bereits vor der RLS-Prüfung scheitern.
+- Migration `20261006141000_guard_audit_generic_row_id.sql` löst die Zeilen-ID nun generisch aus JSON und verwendet bei der privaten Mitarbeiterakte `employee_id` als Fallback.
+- Migration und RLS-Matrix wurden gemeinsam in einer echten Datenbanktransaktion ausgeführt und vollständig zurückgerollt.
+
+Weiter offen: vollständige Schreibmatrix für sämtliche RPC-/Tabellenaktionen, reale Rollen-Abnahme mit Pilotkonten und dauerhafte Anwendung der neuen Migrationen vor Live-Nutzung.
