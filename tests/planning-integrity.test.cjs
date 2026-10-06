@@ -21,7 +21,7 @@ function setup(seed={}){
  });
  async function read(name,q){calls.push({name,q});if(failures.has(name))throw Error('Server unavailable: '+name);return (data[name]||[]).filter(r=>matches(r,q));}
  const context=vm.createContext({Date,Intl,URLSearchParams,encodeURIComponent,console,confirm:()=>true,document:{querySelector:node,querySelectorAll:()=>[],body:{classList:{toggle(){}}}},AONE:{table:read,tableAll:read,esc:s=>String(s).replaceAll('<','&lt;'),toast(){},update:async(name,q,value)=>{writes.push({name,q,value});if(rejectUpdate)return [];const rows=await read(name,q);rows.forEach(r=>Object.assign(r,value));return rows;},insert:async(name,value)=>{writes.push({name,value});data[name].push({...value,id:'new'})}}});
- let source=fs.readFileSync(path.join(__dirname,'../dienstplan.js'),'utf8');source=source.replace('  init();','  globalThis.planner={state,shiftDays,checkAssignment,checkConflict,releaseShift,confirmWeek,cloneShift,createQuick};');vm.runInContext(source,context);
+ let source=fs.readFileSync(path.join(__dirname,'../dienstplan.js'),'utf8');source=source.replace('  init();','  globalThis.planner={state,shiftDays,checkAssignment,checkConflict,staffingAt,releaseShift,confirmWeek,cloneShift,createQuick};');vm.runInContext(source,context);
  const p=context.planner;p.state.ctx={org_id:'org'};p.state.user={id:'u'};p.state.weekStart=new Date('2026-09-28T00:00:00+02:00');p.state.employees=data.guard_employees;p.state.sites=data.guard_sites;p.state.shifts=data.guard_shifts;
  return {p,data,calls,writes,failures,node,rejectUpdate:()=>{rejectUpdate=true}};
 }
@@ -77,6 +77,17 @@ test('canceled neighboring shifts do not consume rest time',async()=>{
  const canceled={...shift,id:'old',status:'canceled'};
  const s=setup({guard_shifts:[canceled]});
  await s.p.checkConflict({...shift,id:'later',starts_at:'2026-09-28T16:01:00+02:00',ends_at:'2026-09-28T17:00:00+02:00'});
+});
+test('minimum staffing checks the full shift and counts distinct employees',()=>{
+ const second={id:'e2',status:'active',qualification_level:'sachkunde'};
+ const partial={...shift,id:'partial',employee_id:'e2',starts_at:'2026-09-28T10:00:00+02:00',ends_at:'2026-09-28T16:00:00+02:00'};
+ const s=setup({guard_sites:[{id:'site',active:true,minimum_staff:2}],guard_employees:[{id:'e',status:'active',qualification_level:'sachkunde'},second],guard_shifts:[{...shift},partial]});
+ assert.deepEqual(JSON.parse(JSON.stringify(s.p.staffingAt(shift))),{required:2,assigned:1,under:true});
+ const full={...partial,starts_at:'2026-09-28T08:00:00+02:00'};
+ s.data.guard_shifts[1]=full;s.p.state.shifts=s.data.guard_shifts;
+ assert.deepEqual(JSON.parse(JSON.stringify(s.p.staffingAt(shift))),{required:2,assigned:2,under:false});
+ s.data.guard_shifts.push({...full,id:'duplicate',employee_id:'e2'});
+ assert.equal(s.p.staffingAt(shift).assigned,2);
 });
 test('release update guards all validated assignment fields and rejects zero updated rows',async()=>{
  const s=setup();s.rejectUpdate();await assert.rejects(s.p.releaseShift('s'),/Freigabe nicht bestätigt/);
