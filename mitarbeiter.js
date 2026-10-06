@@ -29,27 +29,20 @@ function renderQualifications(empId){const rows=state.quals.filter(q=>q.employee
 async function saveEmployee(ev){ev.preventDefault();const e=state.current;if(!e)return;const data={display_name:$('#f-name').value.trim(),employee_no:$('#f-no').value.trim()||null,email:$('#f-email').value.trim().toLowerCase()||null,phone:$('#f-phone').value.trim()||null,bewacher_id:$('#f-bewacher').value.trim()||null,qualification_level:$('#f-qual').value,hourly_rate_cents:$('#f-rate').value===''?null:Math.round(Number($('#f-rate').value)*100),vacation_days_annual:$('#f-vacation').value===''?null:Number($('#f-vacation').value)};AONE.loading(true,'Speichern…');try{await AONE.update('guard_employees',`id=eq.${encodeURIComponent(e.id)}&org_id=eq.${encodeURIComponent(state.ctx.org_id)}`,data);if(e.user_id&&$('#f-role').value!==roleFor(e))await AONE.rpc('guard_set_member_role',{p_org:state.ctx.org_id,p_user:e.user_id,p_role:$('#f-role').value});await load();state.current=state.employees.find(x=>x.id===e.id);$('#edit-title').textContent=state.current?.display_name||data.display_name;msg($('#form-msg'),'Gespeichert.')}catch(err){msg($('#form-msg'),err.message,'err')}finally{AONE.loading(false)}}
 async function toggleActive(){
  const e=state.current,button=$('#toggle-active');if(!e||button.disabled)return;
- const next=e.status==='active'?'inactive':'active';let profileSaved=false,accessSaved=false;
+ const next=e.status==='active'?'inactive':'active';
  button.disabled=true;AONE.loading(true,'Status wird geändert…');
- async function access(){
-  if(!e.user_id)return;
-  await AONE.rpc('guard_set_member_active',{p_org:state.ctx.org_id,p_user:e.user_id,p_active:next==='active'});
-  const members=await AONE.table('guard_memberships',`select=active&org_id=eq.${encodeURIComponent(state.ctx.org_id)}&user_id=eq.${encodeURIComponent(e.user_id)}`);
-  if(members.length!==1||members[0].active!==(next==='active'))throw new Error('Zugangsstatus wurde nicht bestätigt.');
-  accessSaved=true;
- }
  try{
-  // Revoke access first; grant it only after the employee profile is active.
-  if(next==='inactive')await access();
-  const saved=await AONE.update('guard_employees',`id=eq.${encodeURIComponent(e.id)}&org_id=eq.${encodeURIComponent(state.ctx.org_id)}`,{status:next});
-  if(!Array.isArray(saved)||saved.length!==1)throw new Error('Personalstatus wurde nicht gespeichert.');
-  profileSaved=true;
-  if(next==='active')await access();
+  const result=await AONE.rpc('guard_set_employee_active',{p_org:state.ctx.org_id,p_employee:e.id,p_active:next==='active'});
+  if(!result||result.employee_status!==next)throw new Error('Statusänderung wurde vom Server nicht bestätigt.');
+  const employee=await AONE.table('guard_employees',`select=id,status,user_id&org_id=eq.${encodeURIComponent(state.ctx.org_id)}&id=eq.${encodeURIComponent(e.id)}&limit=1`);
+  if(employee.length!==1||employee[0].status!==next)throw new Error('Personalstatus wurde nach der Änderung nicht bestätigt.');
+  if(e.user_id){
+   const members=await AONE.table('guard_memberships',`select=active&org_id=eq.${encodeURIComponent(state.ctx.org_id)}&user_id=eq.${encodeURIComponent(e.user_id)}&limit=1`);
+   if(members.length!==1||members[0].active!==(next==='active'))throw new Error('Zugangsstatus wurde nach der Änderung nicht bestätigt.');
+  }
   await load();close('#edit-back');AONE.toast(next==='active'?'Mitarbeiter aktiviert.':'Mitarbeiter deaktiviert.');
  }catch(err){
-  const partial=accessSaved?'Zugangsstatus gespeichert; Personalstatus/Ansicht bitte prüfen. ':profileSaved?'Personalstatus gespeichert; Zugang nicht bestätigt. ':'';
-  const message=partial+err.message;
-  msg($('#form-msg'),message,'err');AONE.toast(message,'err');
+  msg($('#form-msg'),err.message,'err');AONE.toast(err.message,'err');
  }finally{button.disabled=false;AONE.loading(false)}
 }
 async function savePrivate(){const e=state.current;if(!e)return;const row={employee_id:e.id,org_id:state.ctx.org_id,birth_date:$('#p-birth').value||null,employment_start_date:$('#p-start').value||null,street:$('#p-street').value.trim()||null,house_no:$('#p-house').value.trim()||null,postal_code:$('#p-postal').value.trim()||null,city:$('#p-city').value.trim()||null,emergency_contact:$('#p-emergency').value.trim()||null,emergency_phone:$('#p-emergency-phone').value.trim()||null,updated_by:state.user.id};AONE.loading(true,'Personaldaten speichern…');try{if(state.privateRow)await AONE.update('guard_employee_private',`employee_id=eq.${encodeURIComponent(e.id)}`,row);else await AONE.insert('guard_employee_private',row,false);state.privateRow=row;AONE.toast('Private Personaldaten gespeichert.')}catch(err){AONE.toast(err.message,'err')}finally{AONE.loading(false)}}
