@@ -14,7 +14,7 @@ async function setup(t, rows=[], options={}) {
   t.after(() => context.close());
   const page = await context.newPage();
   await page.clock.setFixedTime(new Date('2026-09-21T10:00:00Z'));
-  const db={rows:structuredClone(rows),writes:[],queries:[],failCheck:false,failDate:null};
+  const db={rows:structuredClone(rows),writes:[],queries:[],failCheck:false,failDate:null,restMinutes:options.minRestMinutes??660,orgWrites:[]};
   const errors=[];page.on('pageerror',err=>errors.push(err.message));
   t.after(()=>assert.deepEqual(errors,[]));
   page.on('dialog',d=>d.accept());
@@ -42,7 +42,13 @@ async function setup(t, rows=[], options={}) {
     const table=url.pathname.split('/').at(-1),p=url.searchParams;
     const send=(data,status=200)=>route.fulfill({status,contentType:'application/json',body:JSON.stringify(data)});
     if(table==='guard_memberships')return send([{org_id:'org1',role:'admin',user_id:'user1'}]);
-    if(table==='guard_organizations')return send([{id:'org1',name:'Testfirma',min_rest_minutes:options.minRestMinutes??660}]);
+    if(table==='guard_organizations'){
+      if(request.method()==='PATCH'){
+        const body=request.postDataJSON();db.restMinutes=body.min_rest_minutes;db.orgWrites.push(body);
+        return send([{id:'org1',name:'Testfirma',min_rest_minutes:db.restMinutes}]);
+      }
+      return send([{id:'org1',name:'Testfirma',min_rest_minutes:db.restMinutes}]);
+    }
     if(table==='guard_employees')return send([{id:'emp1',display_name:'Testmitarbeiter',qualification_level:'sachkunde',status:'active'}]);
     if(table==='guard_sites')return send([{id:'site1',name:'Testobjekt',active:true,minimum_staff:options.minimumStaff||1}]);
     if(['guard_leave_requests','guard_compliance_requirements','guard_qualifications'].includes(table))return send([]);
@@ -119,6 +125,14 @@ test('Object minimum staffing is visible on an under-staffed shift',async t=>{
   await card.waitFor();
   assert.match(await card.textContent(),/Unterbesetzt 1\/2/);
   assert.match(await page.locator('#stats').textContent(),/1 unterbesetzt/);
+});
+test('Owner/admin can change the company-wide minimum rest rule',async t=>{
+  const {page,db}=await setup(t);
+  await page.click('#planning-settings');await page.waitForSelector('#settings-modal.open');
+  await page.fill('#f-rest-hours','10.5');
+  await page.locator('#settings-form button[type=submit]').click();
+  await page.waitForSelector('#settings-modal.open',{state:'hidden'});
+  assert.equal(db.restMinutes,630);assert.deepEqual(db.orgWrites,[{min_rest_minutes:630}]);
 });
 test('Failed conflict lookup prevents writes; missing weekdays and excessive range rejected',async t=>{
   const {page,db}=await setup(t);db.failCheck=true;await submit(page);assert.equal(db.writes.length,0);
