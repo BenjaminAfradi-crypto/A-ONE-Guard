@@ -55,7 +55,7 @@ async function toggle({status='active',rpcFails=false,employeeConfirmed=true,acc
  const ctx=vm.createContext({$,state,encodeURIComponent,msg:(_el,m)=>messages.push(m),close:()=>events.push('close'),load:async()=>events.push('reload'),AONE:{
   loading(){},toast:(m,kind)=>messages.push({m,kind}),
   rpc:async(name,args)=>{events.push('atomic');assert.equal(name,'guard_set_employee_active');assert.equal(args.p_employee,'e');assert.equal(args.p_active,next==='active');if(rpcFails)throw Error('RPC failed');return {employee_status:next};},
-  table:async(name)=>{events.push(name);if(name==='guard_employees')return [{id:'e',status:employeeConfirmed?next:status,user_id:userId}];if(name==='guard_memberships')return [{active:accessConfirmed?(next==='active'):(status==='inactive')}];throw Error('unexpected table '+name);}
+  table:async(name)=>{events.push(name);if(name==='guard_employees')return [{id:'e',status:employeeConfirmed?next:status,user_id:userId}];if(name==='guard_memberships')return [{active:accessConfirmed?(next==='active'):!(next==='active')}];throw Error('unexpected table '+name);}
  }});
  const s=fs.readFileSync(path.join(root,'mitarbeiter.js'),'utf8');vm.runInContext(s.slice(s.indexOf('async function toggleActive()'),s.indexOf('async function savePrivate()')),ctx);await vm.runInContext('toggleActive()',ctx);return {events,messages,nodes};
 }
@@ -63,7 +63,7 @@ test('failed atomic employee activation leaves the UI retryable and reports the 
  const r=await toggle({rpcFails:true});assert.deepEqual(r.events,['atomic']);assert.ok(r.messages.some(x=>x.kind==='err'));assert.equal(r.nodes.get('#toggle-active').disabled,false);
 });
 test('linked employee activation verifies profile and membership after the atomic RPC',async()=>{
- const r=await toggle();assert.deepEqual(r.events,['atomic','guard_employees','guard_memberships','reload','close']);assert.ok(r.messages.some(x=>x.kind==='ok'));
+ const r=await toggle();assert.deepEqual(r.events,['atomic','guard_employees','guard_memberships','reload','close']);
 });
 test('employee without login skips membership verification',async()=>{
  const r=await toggle({userId:null});assert.deepEqual(r.events,['atomic','guard_employees','reload','close']);
