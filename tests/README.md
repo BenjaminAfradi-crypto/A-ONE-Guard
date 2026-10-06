@@ -49,3 +49,24 @@ pending sickness, night shifts, midnight boundaries, mandatory qualification
 validity and renewal, unavailable checks, stale assignments, partial weekly
 release and copying into absences. Browser fixtures support the additional
 lookups, but browser execution still requires the documented Chromium setup.
+
+
+## RLS role matrix
+
+`tests/rls-matrix.sql` is a transactional role-isolation regression for the existing Guard database.
+
+It creates synthetic owner, admin, dispatcher, employee and outsider accounts, then executes reads under the real `authenticated` database role with different JWT subjects. It verifies:
+
+- employees only see their own employee row, assigned shifts and allowed documents;
+- dispatchers can manage operational team data but cannot read private HR rows;
+- admins/owners can read private HR data;
+- outsiders cannot read another tenant's organization, sites, employees, shifts or documents;
+- authenticated clients have no direct SELECT grant on `guard_question_keys`.
+
+The test rolls back all fixtures and audit rows. It assumes all Guard migrations in the candidate branch are already applied. It is not a substitute for application-level authorization tests of every RPC/write path.
+
+### Audit trigger regression found during RLS verification
+
+The role-matrix dry run exposed that `guard_private.audit_guard_ops_change()` assumed every audited table had an `id` column. `guard_employee_private` uses `employee_id` as its primary key, so inserts could fail before RLS evaluation. Migration `20261006141000_guard_audit_generic_row_id.sql` fixes the generic trigger to resolve row identity safely from JSON data.
+
+The migration plus the RLS matrix were executed together inside a real Supabase transaction and fully rolled back; all matrix checks passed.
