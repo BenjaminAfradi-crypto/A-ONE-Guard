@@ -30,3 +30,61 @@ Die Intelligence-Seite ist ausdrücklich regelbasiert. Echte KI, Offline-Erfassu
 Nach den Änderungen meldet der Supabase Advisor keine anonym ausführbaren Guard-SECURITY-DEFINER-Funktionen mehr. Weiterhin 56 Warnungen zu authentifiziert ausführbaren privilegierten Funktionen: deren gezielte Freigabe ersetzt keine vollständige Prüfung der internen Autorisierung. Zwei Tabellen haben absichtlich RLS ohne direkte Policies (private NFC-Quittungen und Dokumentzähler; Zugriff erfolgt über geprüfte Funktionen). Schutz gegen kompromittierte Passwörter ist nicht aktiviert und bleibt ein Konfigurationspunkt.
 
 Hinweise: [Privilegierte Funktionen](https://supabase.com/docs/guides/database/database-linter?lint=0029_authenticated_security_definer_function_executable), [RLS ohne Policies](https://supabase.com/docs/guides/database/database-linter?lint=0008_rls_enabled_no_policy), [Passwortschutz](https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection).
+
+## Weiterentwicklung 28.09.2026 – Pilot-Zeitintegrität
+
+Aufbauend auf PR #2; keine Live-Datenbankänderung und kein Deployment.
+
+- Gemeinsame Nettozeitberechnung für Mitarbeiter, Arbeitszeitenverwaltung,
+  Command-Center-Zeitlisten und Payroll; Pausen werden auf Buchung/Zeitraum
+  begrenzt und überlappende Pausen nur einmal abgezogen.
+- Monatssummen teilen Nachtschichten an der Monatsgrenze. Mitarbeiterzeiten
+  werden explizit auf die eigene Mitarbeiter-ID gefiltert.
+- Vollständige paginierte Zeitabfragen in Mitarbeiteransicht, Arbeitszeiten und
+  Payroll; Pausen werden für die betroffenen Buchungen in kleinen Paketen geladen.
+  Ab 20.000 Datensätzen bricht eine Gesamtabfrage sichtbar ab.
+- Fehlende Pausendaten führen zu einer Fehlermeldung. Payroll sperrt Export
+  und Snapshot während des Ladens und nach Ladefehlern.
+- Deaktivierung bestätigt zuerst den serverseitigen Mitgliedschaftsstatus;
+  Aktivierung erteilt den Zugang zuletzt. Teilerfolge werden ausdrücklich
+  angezeigt. Der Stammdaten-Status ist nur über diesen Ablauf änderbar.
+- 15 neue Node-Regressionstests bestanden; Syntaxprüfung aller JS-Dateien und
+  git diff --check erfolgreich. Die vorhandenen 16 Chromium-Tests konnten in
+  dieser Umgebung nicht erneut ausgeführt werden: Browser fehlt, Download
+  liefert kein gültiges Archiv. Keine Aussage über deren aktuellen Erfolg.
+
+Weiter offen: atomare Statusänderung im Backend, vollständige RLS-Abnahme,
+reale Geräteprüfung, feste organisationsweite Berichtszeitzone (aktuell lokale
+Browser-Zeitzone), konsistente Snapshots bei parallel geänderten paginierten
+Daten. Das Command Center zeigt weiterhin begrenzte historische Listen;
+Monatsabrechnungen müssen die vollständige Payroll-Abfrage nutzen.
+
+## Weiterentwicklung 28.09.2026 – Dienstplan-Prüfungen
+
+Aufbauend auf PR #3. Keine Änderungen an der Live-Datenbank.
+
+- Anlegen, Bearbeiten, Serien und Kopien prüfen unmittelbar vor der Speicherung
+  den aktuellen Objekt-/Mitarbeiterstatus, die Qualifikationsstufe und Abwesenheiten.
+- Genehmigte Abwesenheiten und noch offene Krankmeldungen blockieren die
+  Zuweisung. Offene Urlaubsanträge und abgelehnte Meldungen blockieren nicht.
+- Aktive verpflichtende Qualifikationsanforderungen aus der Compliance-Verwaltung
+  gelten firmenweit oder für das passende Objekt. Ein geprüfter Nachweis muss den
+  gesamten Dienst abdecken; erneuerte Nachweise werden berücksichtigt. Weitere
+  Dokumentanforderungen sind noch nicht Bestandteil dieser Prüfung.
+- Nachtschichten prüfen alle berührten Kalendertage. Ein Ende exakt um Mitternacht
+  berührt den folgenden Tag nicht. Zeitzone bleibt die lokale Browser-Zeitzone.
+- Einzel- und Wochenfreigabe laden die Dienste erneut und prüfen sie vollständig.
+  Unbesetzte Dienste bleiben geplant. Wochenfreigaben melden einzelne Konflikte
+  und erhalten bereits erfolgreiche Freigaben. Ein bedingtes Update verhindert
+  die Freigabe einer inzwischen veränderten Zuweisung.
+- Mitarbeiterreferenzen und Wochenlisten werden vollständig paginiert geladen.
+- 15 neue Node-Tests bestanden; zusammen mit PR #3 sind es 30. Die vorhandenen
+  Browser-Fixtures wurden um die neuen Leseabfragen erweitert. Browserausführung
+  bleibt wegen fehlendem Chromium unbestätigt.
+
+Grenzen: Dies sind Vorabprüfungen im dedizierten Dienstplan. Sie ersetzen keine
+atomaren Backend-Regeln und gelten nicht automatisch für andere Schreibwege,
+insbesondere den älteren Command-Center-Editor oder direkte API-Aufrufe.
+Parallel nach der Prüfung genehmigte Abwesenheiten oder geänderte Nachweise
+können weiterhin eine erneute Prüfung erfordern. Serverseitige Absicherung,
+Ruhezeiten und Mindestbesetzung bleiben offene Pilotpunkte.

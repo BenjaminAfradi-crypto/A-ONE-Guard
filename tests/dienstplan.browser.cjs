@@ -9,19 +9,19 @@ let browser;
 before(async () => { browser = await chromium.launch({headless:true,executablePath:process.env.AONE_CHROMIUM_PATH||undefined,args:JSON.parse(process.env.AONE_CHROMIUM_ARGS||'[]')}); });
 after(async () => { await browser?.close(); });
 const shift = (id, date, start='08:00', end='16:00', extra={}) => ({id,org_id:'org1',site_id:'site1',employee_id:'emp1',title:'Empfang',starts_at:`${date}T${start}:00+02:00`,ends_at:`${date}T${end}:00+02:00`,status:'planned',required_qualification:'none',...extra});
-async function setup(t, rows=[]) {
+async function setup(t, rows=[], options={}) {
   const context = await browser.newContext({timezoneId:'Europe/Berlin',locale:'de-DE',serviceWorkers:'block'});
   t.after(() => context.close());
   const page = await context.newPage();
   await page.clock.setFixedTime(new Date('2026-09-21T10:00:00Z'));
-  const db={rows:structuredClone(rows),writes:[],queries:[],failCheck:false,failDate:null};
+  const db={rows:structuredClone(rows),writes:[],queries:[],failCheck:false,failDate:null,restMinutes:options.minRestMinutes??660,orgWrites:[]};
   const errors=[];page.on('pageerror',err=>errors.push(err.message));
   t.after(()=>assert.deepEqual(errors,[]));
   page.on('dialog',d=>d.accept());
   await context.addInitScript(()=>localStorage.setItem('aone_guard_session_v1',JSON.stringify({access_token:'test-only',expires_at:9999999999999,user:{id:'user1'}})));
   function matches(row,params) {
     return [...params].every(([key,filter])=>{
-      if(['select','limit','order'].includes(key))return true;
+      if(['select','limit','offset','order'].includes(key))return true;
       const dot=filter.indexOf('.'),op=filter.slice(0,dot),value=filter.slice(dot+1);
       const a=key.endsWith('_at')?Date.parse(row[key]):String(row[key]);
       const b=key.endsWith('_at')?Date.parse(value):value;
@@ -42,9 +42,16 @@ async function setup(t, rows=[]) {
     const table=url.pathname.split('/').at(-1),p=url.searchParams;
     const send=(data,status=200)=>route.fulfill({status,contentType:'application/json',body:JSON.stringify(data)});
     if(table==='guard_memberships')return send([{org_id:'org1',role:'admin',user_id:'user1'}]);
-    if(table==='guard_organizations')return send([{id:'org1',name:'Testfirma'}]);
+    if(table==='guard_organizations'){
+      if(request.method()==='PATCH'){
+        const body=request.postDataJSON();db.restMinutes=body.min_rest_minutes;db.orgWrites.push(body);
+        return send([{id:'org1',name:'Testfirma',min_rest_minutes:db.restMinutes}]);
+      }
+      return send([{id:'org1',name:'Testfirma',min_rest_minutes:db.restMinutes}]);
+    }
     if(table==='guard_employees')return send([{id:'emp1',display_name:'Testmitarbeiter',qualification_level:'sachkunde',status:'active'}]);
-    if(table==='guard_sites')return send([{id:'site1',name:'Testobjekt',active:true}]);
+    if(table==='guard_sites')return send([{id:'site1',name:'Testobjekt',active:true,minimum_staff:options.minimumStaff||1}]);
+    if(['guard_leave_requests','guard_compliance_requirements','guard_qualifications'].includes(table))return send([]);
     assert.equal(table,'guard_shifts');
     if(request.method()==='POST')assert.equal(request.postDataJSON().org_id,'org1');
     else assert.equal(p.get('org_id'),'eq.org1');
@@ -52,7 +59,7 @@ async function setup(t, rows=[]) {
       db.queries.push(url.search);
       if(db.failCheck&&p.has('ends_at'))return send({message:'Konfliktprüfung offline'},503);
       let found=db.rows.filter(row=>matches(row,p));
-      if(p.has('limit'))found=found.slice(0,Number(p.get('limit')));
+      const offset=Number(p.get('offset')||0);found=found.slice(offset,p.has('limit')?offset+Number(p.get('limit')):undefined);
       return send(found);
     }
     const row=request.postDataJSON();
@@ -85,13 +92,15 @@ test('Weekday series: chosen dates only, preview, overnight end and mobile layou
   assert.equal(db.writes[0].ends_at,'2026-09-22T04:00:00.000Z');
   if(process.env.AONE_SCREENSHOT)await page.screenshot({path:process.env.AONE_SCREENSHOT,fullPage:true});
 });
-test('Prior-week overnight conflict blocks quick creation, adjacent shift allowed',async t=>{
+test('Prior-week conflict blocks quick creation; exact 11-hour rest boundary is allowed',async t=>{
   const {page,db}=await setup(t,[shift('night','2026-09-20','22:00','06:00',{ends_at:'2026-09-21T09:00:00+02:00'})]);
   await submit(page);assert.equal(db.writes.length,0);assert.match(await page.locator('#quick-msg').textContent(),/Überschneidung/);
-  await page.fill('#q-start','09:00');await submit(page);assert.equal(db.writes.length,1);
+  await page.fill('#q-start','19:59');await page.fill('#q-end','21:00');await submit(page);
+  assert.equal(db.writes.length,0);assert.match(await page.locator('#quick-msg').textContent(),/Ruhezeit unterschritten/);
+  await page.fill('#q-start','20:00');await page.fill('#q-end','21:00');await submit(page);assert.equal(db.writes.length,1);
 });
 test('Edit ignores itself but rejects another overlapping shift',async t=>{
-  const {page,db}=await setup(t,[shift('first','2026-09-21'),shift('second','2026-09-21','16:00','20:00')]);
+  const {page,db}=await setup(t,[shift('first','2026-09-21'),shift('second','2026-09-21','16:00','20:00')],{minRestMinutes:0});
   await page.locator('.edit-shift[data-id=first]').click();await page.locator('#edit-form button[type=submit]').click();
   await page.waitForSelector('#shift-modal.open',{state:'hidden'});assert.equal(db.writes.length,1);
   await page.locator('.edit-shift[data-id=first]').click();await page.fill('#e-end','17:00');await page.locator('#edit-form button[type=submit]').click();
@@ -109,6 +118,21 @@ test('Canceled shifts do not block; partial failures show dates and remain retry
   db.failDate='2026-09-23';await page.selectOption('#q-repeat','5');await submit(page);
   assert.equal(db.writes.length,4);assert.match(await page.locator('#quick-msg').textContent(),/2026-09-23: Test-Speicherfehler/);
   db.failDate=null;await submit(page);assert.equal(db.writes.length,5);
+});
+test('Object minimum staffing is visible on an under-staffed shift',async t=>{
+  const {page}=await setup(t,[shift('only','2026-09-21')],{minimumStaff:2});
+  const card=page.locator('.shift[data-id=only]');
+  await card.waitFor();
+  assert.match(await card.textContent(),/Unterbesetzt 1\/2/);
+  assert.match(await page.locator('#stats').textContent(),/1 unterbesetzt/);
+});
+test('Owner/admin can change the company-wide minimum rest rule',async t=>{
+  const {page,db}=await setup(t);
+  await page.click('#planning-settings');await page.waitForSelector('#settings-modal.open');
+  await page.fill('#f-rest-hours','10.5');
+  await page.locator('#settings-form button[type=submit]').click();
+  await page.waitForSelector('#settings-modal.open',{state:'hidden'});
+  assert.equal(db.restMinutes,630);assert.deepEqual(db.orgWrites,[{min_rest_minutes:630}]);
 });
 test('Failed conflict lookup prevents writes; missing weekdays and excessive range rejected',async t=>{
   const {page,db}=await setup(t);db.failCheck=true;await submit(page);assert.equal(db.writes.length,0);

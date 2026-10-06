@@ -24,12 +24,13 @@ const EMP = (()=>{
 
   async function loadAll(){
     const org=encodeURIComponent(S.ctx.org_id), uid=encodeURIComponent(S.user.id);
-    const [emps,sites,shifts,entries,breaks,watchbook,routes,checkpoints,runs,scans,courses,attempts,quals,leaves,corrections,documents]=await Promise.all([
-      AONE.table('guard_employees',`select=*&org_id=eq.${org}&user_id=eq.${uid}&limit=1`),
+    const emps=await AONE.table('guard_employees',`select=*&org_id=eq.${org}&user_id=eq.${uid}&limit=1`);
+    if(!emps.length){S.emp=null;return;}
+    const employee=encodeURIComponent(emps[0].id);
+    const [sites,shifts,entries,watchbook,routes,checkpoints,runs,scans,courses,attempts,quals,leaves,corrections,documents]=await Promise.all([
       AONE.table('guard_sites',`select=id,org_id,name,address,customer_name,active,geofence_radius_m&org_id=eq.${org}&active=eq.true&order=name.asc`),
       AONE.table('guard_shifts',`select=*&org_id=eq.${org}&order=starts_at.asc&limit=180`),
-      AONE.table('guard_time_entries',`select=*&org_id=eq.${org}&order=clock_in_at.desc&limit=120`),
-      AONE.table('guard_breaks','select=*&order=started_at.desc&limit=120'),
+      AONE.tableAll('guard_time_entries',`select=*&org_id=eq.${org}&employee_id=eq.${employee}&order=clock_in_at.desc`),
       AONE.table('guard_watchbook_entries',`select=*&org_id=eq.${org}&order=occurred_at.desc&limit=100`),
       AONE.table('guard_patrol_routes',`select=*&org_id=eq.${org}&active=eq.true&order=name.asc`),
       AONE.table('guard_checkpoints',`select=id,org_id,route_id,name,sequence_no,preferred_method,active&org_id=eq.${org}&active=eq.true&order=sequence_no.asc`),
@@ -42,6 +43,7 @@ const EMP = (()=>{
       AONE.table('guard_time_corrections',`select=*&org_id=eq.${org}&order=requested_at.desc&limit=100`),
       AONE.table('guard_documents',`select=*&org_id=eq.${org}&order=created_at.desc&limit=100`)
     ]);
+    const breaks=await AONE.entryBreaks(entries);
     [S.emp]=emps; Object.assign(S,{sites,shifts,entries,breaks,watchbook,routes,checkpoints,runs,scans,courses,attempts,quals,leaves,corrections,documents});
   }
 
@@ -56,12 +58,12 @@ const EMP = (()=>{
       ${entry?`<section class="clock"><div class="row between wrap"><div><div class="kicker">Dienst aktiv · ${AONE.esc(siteName(entry.site_id))}</div><div class="clock-time" id="live-clock">00:00:00</div><div class="muted">Eingestempelt ${AONE.dt(entry.clock_in_at)}</div></div><div class="row wrap"><button class="btn" id="break-btn">${br?'Pause beenden':'Pause starten'}</button><button class="btn red" id="clockout-btn">Ausstempeln</button></div></div></section>`:
       target?`<section class="clock"><div class="kicker">${shifts.includes(target)?'Heutiger Dienst':'Nächster Dienst'}</div><div class="shift-time">${AONE.esc(siteName(target.site_id))}</div><div class="muted">${AONE.dt(target.starts_at)} – ${AONE.t(target.ends_at)} · ${AONE.esc(target.title)}</div><div style="margin-top:16px"><button class="btn green" id="clockin-btn">Einstempeln</button></div></section>`:
       `<div class="card"><h2>Kein geplanter Dienst</h2><p class="muted">Aktuell ist keine kommende Schicht eingetragen.</p></div>`}
-      <div class="grid cols-3" style="margin-top:14px"><div class="card"><div class="kicker">Arbeitszeit diesen Monat</div><div class="stat">${monthHours().toFixed(1)} h</div></div><div class="card"><div class="kicker">Offene Urlaubs-/Krankmeldungen</div><div class="stat">${S.leaves.filter(x=>x.status==='pending').length}</div></div><div class="card"><div class="kicker">Academy XP</div><div class="stat">${S.attempts.reduce((a,x)=>a+(x.xp_earned||0),0)}</div></div></div>
+      <div class="grid cols-3" style="margin-top:14px"><div class="card"><div class="kicker">Netto-Arbeitszeit diesen Monat</div><div class="stat">${monthHours().toFixed(1)} h</div></div><div class="card"><div class="kicker">Offene Urlaubs-/Krankmeldungen</div><div class="stat">${S.leaves.filter(x=>x.status==='pending').length}</div></div><div class="card"><div class="kicker">Academy XP</div><div class="stat">${S.attempts.reduce((a,x)=>a+(x.xp_earned||0),0)}</div></div></div>
       <div class="grid cols-2" style="margin-top:14px"><div class="card"><h3>Heutige Schichten</h3>${shifts.length?shifts.map(shiftCard).join(''):'<div class="empty">Keine Schicht heute</div>'}</div><div class="card"><h3>Schnellzugriff</h3><div class="grid cols-2"><button class="btn" data-go="watchbook">Wachbuch</button><button class="btn" data-go="wks">WKS-Rundgang</button><button class="btn" data-go="learn">§34a Training</button><button class="btn" data-go="profile">Urlaub / Krank</button></div></div></div>`;
     if(entry){startTimer(entry);AONE.qs('#clockout-btn').onclick=()=>clockOut(entry);AONE.qs('#break-btn').onclick=()=>toggleBreak(entry,br)} else if(target) AONE.qs('#clockin-btn').onclick=()=>clockIn(target);
     AONE.qsa('[data-go]').forEach(x=>x.onclick=()=>navigate(x.dataset.go));
   }
-  function monthHours(){ const n=new Date(), start=new Date(n.getFullYear(),n.getMonth(),1); return S.entries.filter(e=>new Date(e.clock_in_at)>=start).reduce((sum,e)=>sum+AONE.duration(e.clock_in_at,e.clock_out_at),0); }
+  function monthHours(){ const now=new Date(),from=new Date(now.getFullYear(),now.getMonth(),1),to=new Date(now.getFullYear(),now.getMonth()+1,1); return S.entries.reduce((sum,e)=>sum+AONE.entryHours(e,S.breaks,{from,to,now}).net,0); }
   function shiftCard(s){return `<div class="shift-card" style="padding:10px 0;border-bottom:1px solid var(--line)"><div><b>${AONE.esc(siteName(s.site_id))}</b><div class="muted">${AONE.dt(s.starts_at)} – ${AONE.t(s.ends_at)}</div></div><span class="pill">${AONE.esc(s.title)}</span></div>`}
   function startTimer(entry){ const el=AONE.qs('#live-clock'); const tick=()=>{const sec=Math.floor((Date.now()-new Date(entry.clock_in_at))/1000);const h=String(Math.floor(sec/3600)).padStart(2,'0'),m=String(Math.floor(sec%3600/60)).padStart(2,'0'),s=String(sec%60).padStart(2,'0');if(el)el.textContent=`${h}:${m}:${s}`};tick();S.timer=setInterval(tick,1000); }
   async function clockIn(shift){
@@ -88,7 +90,7 @@ const EMP = (()=>{
   function localInput(v){ if(!v)return ''; const d=new Date(v), z=n=>String(n).padStart(2,'0'); return `${d.getFullYear()}-${z(d.getMonth()+1)}-${z(d.getDate())}T${z(d.getHours())}:${z(d.getMinutes())}`; }
   function renderTimes(){
     const rows=[...S.entries].sort((a,b)=>new Date(b.clock_in_at)-new Date(a.clock_in_at));
-    view().innerHTML=`<div class="page-head"><div><h1>Arbeitszeiten</h1><p>Deine Ein-/Ausstempelungen und Korrekturanträge</p></div></div><div class="card"><div class="table-wrap"><table class="table"><thead><tr><th>Datum</th><th>Objekt</th><th>Ein</th><th>Aus</th><th>Pause</th><th>Dauer</th><th>Status</th><th></th></tr></thead><tbody>${rows.length?rows.map(e=>{const bs=S.breaks.filter(b=>b.time_entry_id===e.id), mins=Math.round(bs.reduce((n,b)=>n+Math.max(0,(new Date(b.ended_at||Date.now())-new Date(b.started_at))/60000),0)), c=S.corrections.find(x=>x.time_entry_id===e.id&&x.status==='pending')||S.corrections.find(x=>x.time_entry_id===e.id&&x.status==='approved')||S.corrections.find(x=>x.time_entry_id===e.id&&x.status==='rejected'); const st=c?({pending:'Korrektur offen',approved:'Korrigiert',rejected:'Abgelehnt'})[c.status]:'Erfasst'; return `<tr><td>${AONE.d(e.clock_in_at)}</td><td>${AONE.esc(siteName(e.site_id))}</td><td>${AONE.t(e.clock_in_at)}</td><td>${AONE.t(e.clock_out_at)}</td><td>${mins} Min.</td><td>${AONE.duration(e.clock_in_at,e.clock_out_at).toFixed(2)} h</td><td><span class="pill ${c?.status==='pending'?'yellow':c?.status==='approved'?'green':c?.status==='rejected'?'red':''}">${st}</span></td><td>${e.clock_out_at&&!S.corrections.some(x=>x.time_entry_id===e.id&&x.status==='pending')?`<button class="btn small time-correct" data-id="${e.id}">Korrektur</button>`:''}</td></tr>`}).join(''):'<tr><td colspan="8" class="empty">Noch keine Arbeitszeiten.</td></tr>'}</tbody></table></div></div>`;
+    view().innerHTML=`<div class="page-head"><div><h1>Arbeitszeiten</h1><p>Deine Ein-/Ausstempelungen und Korrekturanträge</p></div></div><div class="card"><div class="table-wrap"><table class="table"><thead><tr><th>Datum</th><th>Objekt</th><th>Ein</th><th>Aus</th><th>Pause</th><th>Nettozeit</th><th>Status</th><th></th></tr></thead><tbody>${rows.length?rows.map(e=>{const totals=AONE.entryHours(e,S.breaks), mins=Math.round(totals.breaks*60), c=S.corrections.find(x=>x.time_entry_id===e.id&&x.status==='pending')||S.corrections.find(x=>x.time_entry_id===e.id&&x.status==='approved')||S.corrections.find(x=>x.time_entry_id===e.id&&x.status==='rejected'); const st=c?({pending:'Korrektur offen',approved:'Korrigiert',rejected:'Abgelehnt'})[c.status]:'Erfasst'; return `<tr><td>${AONE.d(e.clock_in_at)}</td><td>${AONE.esc(siteName(e.site_id))}</td><td>${AONE.t(e.clock_in_at)}</td><td>${AONE.t(e.clock_out_at)}</td><td>${mins} Min.</td><td>${totals.net.toFixed(2)} h</td><td><span class="pill ${c?.status==='pending'?'yellow':c?.status==='approved'?'green':c?.status==='rejected'?'red':''}">${st}</span></td><td>${e.clock_out_at&&!S.corrections.some(x=>x.time_entry_id===e.id&&x.status==='pending')?`<button class="btn small time-correct" data-id="${e.id}">Korrektur</button>`:''}</td></tr>`}).join(''):'<tr><td colspan="8" class="empty">Noch keine Arbeitszeiten.</td></tr>'}</tbody></table></div></div>`;
     AONE.qsa('.time-correct').forEach(b=>b.onclick=()=>openTimeCorrection(b.dataset.id));
   }
   function openTimeCorrection(id){
