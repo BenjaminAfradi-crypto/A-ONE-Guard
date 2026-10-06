@@ -68,6 +68,16 @@ test('release ignores itself but rejects overlapping other assignment',async()=>
  const s=setup();await s.p.releaseShift('s');assert.equal(s.data.guard_shifts[0].status,'confirmed');
  const conflict=setup({guard_shifts:[{...shift},{...shift,id:'other'}]});await assert.rejects(conflict.p.releaseShift('s'),/Überschneidung/);assert.equal(conflict.writes.length,0);
 });
+test('minimum rest time rejects 10h59 and accepts the exact 11-hour boundary',async()=>{
+ const s=setup();
+ await assert.rejects(s.p.checkConflict({...shift,id:'later',starts_at:'2026-09-29T02:59:00+02:00',ends_at:'2026-09-29T04:00:00+02:00'}),/Ruhezeit unterschritten.*10 Std. 59 Min.*11 Std/);
+ await s.p.checkConflict({...shift,id:'later',starts_at:'2026-09-29T03:00:00+02:00',ends_at:'2026-09-29T04:00:00+02:00'});
+});
+test('canceled neighboring shifts do not consume rest time',async()=>{
+ const canceled={...shift,id:'old',status:'canceled'};
+ const s=setup({guard_shifts:[canceled]});
+ await s.p.checkConflict({...shift,id:'later',starts_at:'2026-09-28T16:01:00+02:00',ends_at:'2026-09-28T17:00:00+02:00'});
+});
 test('release update guards all validated assignment fields and rejects zero updated rows',async()=>{
  const s=setup();s.rejectUpdate();await assert.rejects(s.p.releaseShift('s'),/Freigabe nicht bestätigt/);
  const q=new URLSearchParams(s.writes[0].q);for(const key of ['id','org_id','status','employee_id','site_id','starts_at','ends_at','required_qualification'])assert.ok(q.has(key),key);
