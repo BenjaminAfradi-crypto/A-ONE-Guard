@@ -9,7 +9,7 @@ let browser;
 before(async () => { browser = await chromium.launch({headless:true,executablePath:process.env.AONE_CHROMIUM_PATH||undefined,args:JSON.parse(process.env.AONE_CHROMIUM_ARGS||'[]')}); });
 after(async () => { await browser?.close(); });
 const shift = (id, date, start='08:00', end='16:00', extra={}) => ({id,org_id:'org1',site_id:'site1',employee_id:'emp1',title:'Empfang',starts_at:`${date}T${start}:00+02:00`,ends_at:`${date}T${end}:00+02:00`,status:'planned',required_qualification:'none',...extra});
-async function setup(t, rows=[]) {
+async function setup(t, rows=[], options={}) {
   const context = await browser.newContext({timezoneId:'Europe/Berlin',locale:'de-DE',serviceWorkers:'block'});
   t.after(() => context.close());
   const page = await context.newPage();
@@ -44,7 +44,7 @@ async function setup(t, rows=[]) {
     if(table==='guard_memberships')return send([{org_id:'org1',role:'admin',user_id:'user1'}]);
     if(table==='guard_organizations')return send([{id:'org1',name:'Testfirma'}]);
     if(table==='guard_employees')return send([{id:'emp1',display_name:'Testmitarbeiter',qualification_level:'sachkunde',status:'active'}]);
-    if(table==='guard_sites')return send([{id:'site1',name:'Testobjekt',active:true}]);
+    if(table==='guard_sites')return send([{id:'site1',name:'Testobjekt',active:true,minimum_staff:options.minimumStaff||1}]);
     if(['guard_leave_requests','guard_compliance_requirements','guard_qualifications'].includes(table))return send([]);
     assert.equal(table,'guard_shifts');
     if(request.method()==='POST')assert.equal(request.postDataJSON().org_id,'org1');
@@ -112,6 +112,13 @@ test('Canceled shifts do not block; partial failures show dates and remain retry
   db.failDate='2026-09-23';await page.selectOption('#q-repeat','5');await submit(page);
   assert.equal(db.writes.length,4);assert.match(await page.locator('#quick-msg').textContent(),/2026-09-23: Test-Speicherfehler/);
   db.failDate=null;await submit(page);assert.equal(db.writes.length,5);
+});
+test('Object minimum staffing is visible on an under-staffed shift',async t=>{
+  const {page}=await setup(t,[shift('only','2026-09-21')],{minimumStaff:2});
+  const card=page.locator('.shift[data-id=only]');
+  await card.waitFor();
+  assert.match(await card.textContent(),/Unterbesetzt 1\/2/);
+  assert.match(await page.locator('#stats').textContent(),/1 unterbesetzt/);
 });
 test('Failed conflict lookup prevents writes; missing weekdays and excessive range rejected',async t=>{
   const {page,db}=await setup(t);db.failCheck=true;await submit(page);assert.equal(db.writes.length,0);
