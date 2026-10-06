@@ -42,7 +42,7 @@ async function setup(t, rows=[], options={}) {
     const table=url.pathname.split('/').at(-1),p=url.searchParams;
     const send=(data,status=200)=>route.fulfill({status,contentType:'application/json',body:JSON.stringify(data)});
     if(table==='guard_memberships')return send([{org_id:'org1',role:'admin',user_id:'user1'}]);
-    if(table==='guard_organizations')return send([{id:'org1',name:'Testfirma'}]);
+    if(table==='guard_organizations')return send([{id:'org1',name:'Testfirma',min_rest_minutes:options.minRestMinutes??660}]);
     if(table==='guard_employees')return send([{id:'emp1',display_name:'Testmitarbeiter',qualification_level:'sachkunde',status:'active'}]);
     if(table==='guard_sites')return send([{id:'site1',name:'Testobjekt',active:true,minimum_staff:options.minimumStaff||1}]);
     if(['guard_leave_requests','guard_compliance_requirements','guard_qualifications'].includes(table))return send([]);
@@ -94,7 +94,7 @@ test('Prior-week conflict blocks quick creation; exact 11-hour rest boundary is 
   await page.fill('#q-start','20:00');await page.fill('#q-end','21:00');await submit(page);assert.equal(db.writes.length,1);
 });
 test('Edit ignores itself but rejects another overlapping shift',async t=>{
-  const {page,db}=await setup(t,[shift('first','2026-09-21'),shift('second','2026-09-21','16:00','20:00')]);
+  const {page,db}=await setup(t,[shift('first','2026-09-21'),shift('second','2026-09-21','16:00','20:00')],{minRestMinutes:0});
   await page.locator('.edit-shift[data-id=first]').click();await page.locator('#edit-form button[type=submit]').click();
   await page.waitForSelector('#shift-modal.open',{state:'hidden'});assert.equal(db.writes.length,1);
   await page.locator('.edit-shift[data-id=first]').click();await page.fill('#e-end','17:00');await page.locator('#edit-form button[type=submit]').click();
