@@ -22,6 +22,13 @@
   function siteById(id){return state.sites.find(x=>x.id===id)}
   function empById(id){return state.employees.find(x=>x.id===id)}
   function empEligible(emp,qual){return !emp||qualRank[emp.qualification_level||'none']>=qualRank[qual||'none']}
+  function staffingAt(shift){
+    if(!shift||shift.status==='canceled')return null;
+    const site=siteById(shift.site_id),required=Math.max(1,Number(site?.minimum_staff||1));
+    const start=new Date(shift.starts_at),end=new Date(shift.ends_at),point=new Date((+start+ +end)/2);
+    const assigned=state.shifts.filter(s=>s.status!=='canceled'&&s.site_id===shift.site_id&&s.employee_id&&new Date(s.starts_at)<=point&&new Date(s.ends_at)>point).length;
+    return {required,assigned,under:assigned<required};
+  }
   function setBusy(on){state.loading=on;document.body.classList.toggle('busy',on)}
   function message(el,text,kind='ok'){
     if(!el)return; if(!text){el.innerHTML='';return}
@@ -52,7 +59,7 @@
     const org=state.ctx.org_id;
     const [employees,sites,organizations]=await Promise.all([
       AONE.tableAll('guard_employees',`select=id,display_name,employee_no,email,qualification_level,status&org_id=eq.${encodeURIComponent(org)}&status=eq.active&order=display_name.asc`),
-      AONE.table('guard_sites',`select=id,name,customer_name,address,active&org_id=eq.${encodeURIComponent(org)}&active=eq.true&order=name.asc`),
+      AONE.table('guard_sites',`select=id,name,customer_name,address,active,minimum_staff&org_id=eq.${encodeURIComponent(org)}&active=eq.true&order=name.asc`),
       AONE.table('guard_organizations',`select=id,min_rest_minutes&id=eq.${encodeURIComponent(org)}&limit=1`)
     ]);
     state.employees=employees||[];state.sites=sites||[];
@@ -72,13 +79,13 @@
   }
 
   function shiftCard(s){
-    const start=new Date(s.starts_at),end=new Date(s.ends_at),site=siteById(s.site_id),emp=empById(s.employee_id);
+    const start=new Date(s.starts_at),end=new Date(s.ends_at),site=siteById(s.site_id),emp=empById(s.employee_id),staffing=staffingAt(s);
     const employee=emp?esc(emp.display_name):'Unbesetzt';
     return `<article class="shift ${esc(s.status)} ${s.employee_id?'':'unassigned'}" data-id="${s.id}">
       <div class="shift-time">${localTime(start)}–${localTime(end)}</div>
       <div class="shift-site"><b>${esc(site?.name||'Objekt')}</b>${s.title&&s.title!==(site?.name||'')?` · ${esc(s.title)}`:''}</div>
       <div class="shift-employee">${employee}</div>
-      <div class="shift-meta"><span class="tag">${esc(statusLabel[s.status]||s.status)}</span>${s.required_qualification!=='none'?`<span class="tag">${esc(qualLabel[s.required_qualification]||s.required_qualification)}</span>`:''}<span class="tag">${durationHours(s).toFixed(1).replace('.0','')} h</span></div>
+      <div class="shift-meta"><span class="tag">${esc(statusLabel[s.status]||s.status)}</span>${s.required_qualification!=='none'?`<span class="tag">${esc(qualLabel[s.required_qualification]||s.required_qualification)}</span>`:''}${staffing?.under?`<span class="tag">Unterbesetzt ${staffing.assigned}/${staffing.required}</span>`:''}<span class="tag">${durationHours(s).toFixed(1).replace('.0','')} h</span></div>
       <div class="shift-actions">
         <button class="btn small edit-shift" type="button" data-id="${s.id}">Bearbeiten</button>
         <button class="btn small copy-shift" type="button" data-id="${s.id}">+1 Tag</button>
@@ -92,7 +99,8 @@
     const visible=filteredShifts();
     const totalHours=visible.filter(s=>s.status!=='canceled').reduce((a,s)=>a+durationHours(s),0);
     const unassigned=visible.filter(s=>!s.employee_id&&s.status!=='canceled').length;
-    $('#stats').innerHTML=`<span class="stat">${visible.filter(s=>s.status!=='canceled').length} Schichten</span><span class="stat">${totalHours.toFixed(1).replace('.0','')} Std.</span><span class="stat">${unassigned} unbesetzt</span>`;
+    const underfilled=visible.filter(s=>staffingAt(s)?.under).length;
+    $('#stats').innerHTML=`<span class="stat">${visible.filter(s=>s.status!=='canceled').length} Schichten</span><span class="stat">${totalHours.toFixed(1).replace('.0','')} Std.</span><span class="stat">${unassigned} unbesetzt</span>${underfilled?`<span class="stat">${underfilled} unterbesetzt</span>`:''}`;
     const today=localDate(new Date());
     const html=[];
     for(let i=0;i<7;i++){
