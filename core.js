@@ -61,7 +61,11 @@ const AONE = (() => {
   async function signUp(email,password,displayName){
     return authFetch('signup',{email,password,data:{display_name:displayName,full_name:displayName,aone_guard:true}});
   }
-  async function recover(email){ return authFetch('recover',{email}); }
+  async function recover(email,returnMode='employee'){
+    const mode=['employee','admin','developer'].includes(returnMode)?returnMode:'employee';
+    const redirectTo=new URL(`./reset-password.html?return=${mode}`,location.href).href;
+    return authFetch(`recover?redirect_to=${encodeURIComponent(redirectTo)}`,{email});
+  }
   async function updatePassword(password){
     const s=await session(); if(!s) throw new Error('Nicht angemeldet');
     const r=await fetch(`${SUPABASE_URL}/auth/v1/user`,{method:'PUT',headers:{apikey:API_KEY,Authorization:`Bearer ${s.access_token}`,'Content-Type':'application/json'},body:JSON.stringify({password})});
