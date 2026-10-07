@@ -213,7 +213,7 @@ begin
     created_shift_ids,created_site_ids,errors,status,created_by
   ) values (
     p_org,nullif(btrim(coalesce(p_file_name,'')),''),
-    lower(nullif(btrim(coalesce(p_file_sha256,'')),'',
+    lower(nullif(btrim(coalesce(p_file_sha256,'')),'')),
     v_total,v_imported,v_failed,
     v_created_shift_ids,v_created_site_ids,v_errors,v_status,v_actor
   )
