@@ -5,7 +5,7 @@ do $test$
 declare
  a uuid:=gen_random_uuid(); b uuid:=gen_random_uuid(); u uuid:=gen_random_uuid(); outsider uuid:=gen_random_uuid(); worker_user uuid:=gen_random_uuid();
  e uuid:=gen_random_uuid(); worker_e uuid:=gen_random_uuid(); site uuid:=gen_random_uuid(); inactive_site uuid:=gen_random_uuid(); foreign_site uuid:=gen_random_uuid();
- template uuid:=gen_random_uuid(); task uuid:=gen_random_uuid(); session_id uuid:=gen_random_uuid(); import_shift uuid:=gen_random_uuid(); import_batch uuid:=gen_random_uuid(); rejected boolean; tag jsonb; first_result jsonb; repeat_result jsonb; revert_result jsonb; request_id uuid:=gen_random_uuid();
+ template uuid:=gen_random_uuid(); task uuid:=gen_random_uuid(); session_id uuid:=gen_random_uuid(); import_shift uuid; import_batch uuid; rejected boolean; tag jsonb; first_result jsonb; repeat_result jsonb; import_result jsonb; revert_result jsonb; request_id uuid:=gen_random_uuid();
 begin
  insert into auth.users(id,email) values(u,'guard-test-'||u||'@example.invalid'),(outsider,'guard-test-'||outsider||'@example.invalid'),(worker_user,'guard-test-'||worker_user||'@example.invalid');
  insert into public.guard_organizations(id,name,slug) values(a,'Synthetic test A','test-'||a),(b,'Synthetic test B','test-'||b);
@@ -29,10 +29,26 @@ begin
  if not rejected then raise exception 'FAIL 10h59 rest period was accepted'; end if;
  insert into public.guard_shifts(org_id,site_id,employee_id,title,starts_at,ends_at) values(a,site,e,'Rest boundary','2030-01-02 03:00Z','2030-01-02 04:00Z');
  if not exists(select 1 from pg_constraint where conrelid='public.guard_shifts'::regclass and conname='guard_shifts_no_employee_overlap' and contype='x') then raise exception 'FAIL atomic exclusion constraint missing'; end if;
- insert into public.guard_shifts(id,org_id,site_id,employee_id,title,starts_at,ends_at,status,created_by)
- values(import_shift,a,site,e,'Imported shift','2030-01-04 08:00Z','2030-01-04 16:00Z','planned',u);
- insert into public.guard_schedule_import_batches(id,org_id,file_name,total_rows,imported_rows,created_shift_ids,status,created_by)
- values(import_batch,a,'synthetic.xlsx',1,1,array[import_shift],'completed',u);
+ import_result:=public.guard_apply_schedule_import(
+   a,
+   'synthetic.xlsx',
+   repeat('a',64),
+   jsonb_build_array(jsonb_build_object(
+     'sheet','Test',
+     'row',2,
+     'employee_id',e,
+     'site_id',site,
+     'site_name','Synthetic site',
+     'title','Imported shift',
+     'starts_at','2030-01-04T08:00:00Z',
+     'ends_at','2030-01-04T16:00:00Z'
+   )),
+   false
+ );
+ if coalesce((import_result->>'imported')::integer,0)<>1 or coalesce((import_result->>'failed')::integer,0)<>0 then raise exception 'FAIL atomic schedule import result'; end if;
+ import_batch:=(import_result->>'batch_id')::uuid;
+ import_shift:=(import_result->'created_shift_ids'->>0)::uuid;
+ if import_batch is null or import_shift is null then raise exception 'FAIL atomic schedule import identifiers'; end if;
  revert_result:=public.guard_revert_schedule_import(import_batch);
  if coalesce((revert_result->>'reverted_shifts')::integer,0)<>1 then raise exception 'FAIL schedule import revert count'; end if;
  if (select status from public.guard_shifts where id=import_shift)<>'canceled' then raise exception 'FAIL imported shift was not canceled on revert'; end if;
@@ -90,5 +106,5 @@ begin
  if not rejected then raise exception 'FAIL NFC request accepted changed payload'; end if;
  if exists(select 1 from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='public' and p.proname like 'guard_%' and has_function_privilege('anon',p.oid,'execute')) then raise exception 'FAIL anonymous RPC execute still allowed'; end if;
 end $test$;
-select 'PASS: overlap/rest integrity, reversible schedule imports, active-object and assignment guards, atomic employee access, tenant links, outsider denial, required fields, form snapshot, anonymous RPC grants and NFC retries' as result;
+select 'PASS: overlap/rest integrity, atomic and reversible schedule imports, active-object and assignment guards, atomic employee access, tenant links, outsider denial, required fields, form snapshot, anonymous RPC grants and NFC retries' as result;
 rollback;
