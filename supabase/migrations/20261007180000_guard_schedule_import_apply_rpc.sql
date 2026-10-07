@@ -245,6 +245,9 @@ begin
 end
 $function$;
 
+drop policy if exists guard_schedule_import_batches_insert
+  on public.guard_schedule_import_batches;
+
 revoke insert, update, delete, truncate, references, trigger
   on table public.guard_schedule_import_batches
   from authenticated;
