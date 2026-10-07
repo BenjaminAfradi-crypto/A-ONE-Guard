@@ -28,8 +28,6 @@ const AONE_IMPORT=(()=>{
       let score=Object.keys(columns).length+(columns.employeeNo!==undefined?2:0)+(columns.displayName!==undefined?2:0)+(columns.date!==undefined?2:0);
       if(!best||score>best.score)best={index:i,columns,score,headers:(grid[i]||[]).map(clean)};
     }
-    if(!best||best.score<2)return null;
-    if(kind==='employees'&&best.columns.displayName===undefined&&best.columns.firstName===undefined&&best.columns.employeeNo===undefined)return null;
     return best;
   }
   function applyMapping(header,mapping={}){
@@ -92,8 +90,12 @@ const AONE_IMPORT=(()=>{
     const rows=[],problems=[],headers=new Set();let sourceRows=0;
     for(const sheet of book.SheetNames){
       const grid=book.Sheets[sheet]||[];if(!grid.length)continue;const h=detectHeader(grid,kind);
-      if(!h){problems.push({sheet,row:1,reason:'Keine erkennbaren Spaltenüberschriften.'});continue}
-      h.headers.filter(Boolean).forEach(x=>headers.add(x));const c=applyMapping(h,mapping);
+      if(!h){problems.push({sheet,row:1,reason:'Keine Spaltenüberschriften gefunden.'});continue}
+      h.headers.filter(Boolean).forEach(x=>headers.add(x));
+      const hasManual=Object.values(mapping||{}).some(Boolean);
+      if(h.score<2&&!hasManual){problems.push({sheet,row:h.index+1,reason:'Spalten nicht sicher erkannt. Bitte die Zuordnung oben manuell festlegen.'});continue}
+      const c=applyMapping(h,mapping);
+      if(kind==='employees'&&c.displayName===undefined&&c.firstName===undefined&&c.employeeNo===undefined&&!hasManual){problems.push({sheet,row:h.index+1,reason:'Name oder Personalnummer konnte nicht erkannt werden.'});continue}
       const nameOf=row=>at(row,c.displayName)||[at(row,c.firstName),at(row,c.lastName)].filter(Boolean).join(' ');
       if(kind==='employees'){
         for(let i=h.index+1;i<grid.length;i++){const row=grid[i]||[];if(row.every(v=>!clean(v)))continue;sourceRows++;
