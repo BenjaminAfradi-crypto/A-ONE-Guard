@@ -131,7 +131,7 @@ begin
           raise exception 'Objektname ist zu lang';
         end if;
 
-        select count(*), min(s.id)
+        select count(*), (array_agg(s.id order by s.id))[1]
           into v_site_count, v_site_id
           from public.guard_sites s
          where s.org_id = p_org
@@ -148,7 +148,7 @@ begin
             raise exception 'Objekt ist nicht aktiv';
           end if;
         else
-          if not p_create_missing_sites then
+          if not coalesce(p_create_missing_sites,false) then
             raise exception 'Objekt existiert nicht';
           end if;
 
@@ -160,7 +160,7 @@ begin
         end if;
       end if;
 
-      v_title := btrim(coalesce(nullif(v_row->>'title',''),'Sicherheitsdienst'));
+      v_title := coalesce(nullif(btrim(v_row->>'title'),''),'Sicherheitsdienst');
       if length(v_title) > 250 then
         raise exception 'Tätigkeit ist zu lang';
       end if;
