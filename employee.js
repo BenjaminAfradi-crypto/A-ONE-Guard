@@ -27,9 +27,10 @@ const EMP = (()=>{
     const emps=await AONE.table('guard_employees',`select=*&org_id=eq.${org}&user_id=eq.${uid}&limit=1`);
     if(!emps.length){S.emp=null;return;}
     const employee=encodeURIComponent(emps[0].id);
+    const shiftHistoryFrom=new Date(Date.now()-90*86400000).toISOString();
     const [sites,shifts,entries,watchbook,routes,checkpoints,runs,scans,courses,attempts,quals,leaves,corrections,documents]=await Promise.all([
       AONE.table('guard_sites',`select=id,org_id,name,address,customer_name,active,geofence_radius_m&org_id=eq.${org}&active=eq.true&order=name.asc`),
-      AONE.table('guard_shifts',`select=*&org_id=eq.${org}&order=starts_at.asc&limit=180`),
+      AONE.tableAll('guard_shifts',`select=*&org_id=eq.${org}&ends_at=gte.${encodeURIComponent(shiftHistoryFrom)}&order=starts_at.asc`),
       AONE.tableAll('guard_time_entries',`select=*&org_id=eq.${org}&employee_id=eq.${employee}&order=clock_in_at.desc`),
       AONE.table('guard_watchbook_entries',`select=*&org_id=eq.${org}&order=occurred_at.desc&limit=100`),
       AONE.table('guard_patrol_routes',`select=*&org_id=eq.${org}&active=eq.true&order=name.asc`),
