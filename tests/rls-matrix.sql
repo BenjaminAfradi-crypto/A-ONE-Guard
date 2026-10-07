@@ -57,6 +57,9 @@ insert into public.guard_documents(org_id,employee_id,title,category,storage_pat
  ('11111111-1111-4111-8111-111111111111',null,'Company document','other','rls/company.pdf'),
  ('11111111-1111-4111-8111-111111111111','bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbb2','Other employee document','other','rls/other.pdf');
 
+insert into public.guard_schedule_import_batches(id,org_id,file_name,total_rows,imported_rows,status,created_by)
+values('dddddddd-dddd-4ddd-8ddd-ddddddddddd1','11111111-1111-4111-8111-111111111111','rls.xlsx',1,1,'completed','aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa1');
+
 set local role authenticated;
 select set_config('request.jwt.claim.sub','aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa4',true);
 insert into rls_results select 'employee','organizations',count(*),1 from public.guard_organizations where id='11111111-1111-4111-8111-111111111111';
@@ -66,6 +69,7 @@ insert into rls_results select 'employee','sites',count(*),1 from public.guard_s
 insert into rls_results select 'employee','shifts',count(*),1 from public.guard_shifts where org_id='11111111-1111-4111-8111-111111111111';
 insert into rls_results select 'employee','private_hr',count(*),0 from public.guard_employee_private where org_id='11111111-1111-4111-8111-111111111111';
 insert into rls_results select 'employee','documents',count(*),2 from public.guard_documents where org_id='11111111-1111-4111-8111-111111111111';
+insert into rls_results select 'employee','schedule_import_batches',count(*),0 from public.guard_schedule_import_batches where org_id='11111111-1111-4111-8111-111111111111';
 
 reset role;
 set local role authenticated;
@@ -74,6 +78,7 @@ insert into rls_results select 'dispatcher','memberships',count(*),4 from public
 insert into rls_results select 'dispatcher','employees',count(*),2 from public.guard_employees where org_id='11111111-1111-4111-8111-111111111111';
 insert into rls_results select 'dispatcher','private_hr',count(*),0 from public.guard_employee_private where org_id='11111111-1111-4111-8111-111111111111';
 insert into rls_results select 'dispatcher','documents',count(*),3 from public.guard_documents where org_id='11111111-1111-4111-8111-111111111111';
+insert into rls_results select 'dispatcher','schedule_import_batches',count(*),1 from public.guard_schedule_import_batches where org_id='11111111-1111-4111-8111-111111111111';
 
 reset role;
 set local role authenticated;
@@ -82,12 +87,14 @@ insert into rls_results select 'admin','memberships',count(*),4 from public.guar
 insert into rls_results select 'admin','employees',count(*),2 from public.guard_employees where org_id='11111111-1111-4111-8111-111111111111';
 insert into rls_results select 'admin','private_hr',count(*),1 from public.guard_employee_private where org_id='11111111-1111-4111-8111-111111111111';
 insert into rls_results select 'admin','documents',count(*),3 from public.guard_documents where org_id='11111111-1111-4111-8111-111111111111';
+insert into rls_results select 'admin','schedule_import_batches',count(*),1 from public.guard_schedule_import_batches where org_id='11111111-1111-4111-8111-111111111111';
 
 reset role;
 set local role authenticated;
 select set_config('request.jwt.claim.sub','aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa1',true);
 insert into rls_results select 'owner','memberships',count(*),4 from public.guard_memberships where org_id='11111111-1111-4111-8111-111111111111';
 insert into rls_results select 'owner','private_hr',count(*),1 from public.guard_employee_private where org_id='11111111-1111-4111-8111-111111111111';
+insert into rls_results select 'owner','schedule_import_batches',count(*),1 from public.guard_schedule_import_batches where org_id='11111111-1111-4111-8111-111111111111';
 
 reset role;
 set local role authenticated;
@@ -97,6 +104,7 @@ insert into rls_results select 'outsider','site_a',count(*),0 from public.guard_
 insert into rls_results select 'outsider','employee_a',count(*),0 from public.guard_employees where org_id='11111111-1111-4111-8111-111111111111';
 insert into rls_results select 'outsider','shift_a',count(*),0 from public.guard_shifts where org_id='11111111-1111-4111-8111-111111111111';
 insert into rls_results select 'outsider','documents_a',count(*),0 from public.guard_documents where org_id='11111111-1111-4111-8111-111111111111';
+insert into rls_results select 'outsider','schedule_import_batches_a',count(*),0 from public.guard_schedule_import_batches where org_id='11111111-1111-4111-8111-111111111111';
 
 reset role;
 insert into rls_results values(
@@ -117,6 +125,16 @@ insert into rls_results values(
 insert into rls_results values(
  'all','membership_direct_delete_grant',
  case when has_table_privilege('authenticated','public.guard_memberships','delete') then 1 else 0 end,
+ 0
+);
+insert into rls_results values(
+ 'all','schedule_import_direct_update_grant',
+ case when has_table_privilege('authenticated','public.guard_schedule_import_batches','update') then 1 else 0 end,
+ 0
+);
+insert into rls_results values(
+ 'all','schedule_import_direct_delete_grant',
+ case when has_table_privilege('authenticated','public.guard_schedule_import_batches','delete') then 1 else 0 end,
  0
 );
 
