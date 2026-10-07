@@ -3,3 +3,5 @@
 @media(max-width:680px){.shell{padding:12px}.grid.cols-2,.grid.cols-3,.grid.cols-4{grid-template-columns:1fr}.feature-list{grid-template-columns:1fr}.hero h1{letter-spacing:-2px}.topbar{padding-top:8px}.brand span{display:none}.page-head{align-items:start;flex-direction:column}.card{padding:14px}.shift-card{align-items:flex-start;flex-direction:column}.modal{padding:15px}.top-actions .context-name{display:none}.table{min-width:560px}}
 @media print{body{background:white;color:#111}.no-print,.topbar,.sidebar,.mobile-tabs{display:none!important}.content{padding:0}.card{border:0;box-shadow:none;background:white;color:#111}.archive-report{padding:0}}
 .auth-logo-wrap{display:flex;justify-content:center;margin:-4px 0 12px}.auth-logo-full{width:min(170px,48vw);height:auto;display:block;opacity:.98}.login-card>.brand{justify-content:center;margin-bottom:14px}.login-card>.brand .brand-mark{display:none}.login-card>.brand div{text-align:center}
+
+.topbar,.top-actions{flex-wrap:wrap}.top-actions{min-width:0}@media(max-width:680px){.top-actions{width:100%}}

@@ -1,7 +1,7 @@
 (async()=>{
   const mode=window.AONE_AUTH_MODE||'employee';
   const employeeTarget=()=>{
-    try{const p=JSON.parse(localStorage.getItem('aone_nfc_pending')||'null');if(p?.token)return './nfc.html'}catch{}
+    try{const p=JSON.parse(localStorage.getItem('aone_nfc_pending')||'null');if(p?.token&&Date.now()-p.created_at<10*60*1000)return './nfc.html';localStorage.removeItem('aone_nfc_pending')}catch{}
     return './app.html';
   };
   async function tryPendingPilot(user){
@@ -44,6 +44,6 @@
   });
   AONE.qs('#forgot').addEventListener('click',async()=>{
     const email=form.email.value.trim(); if(!email) return AONE.toast('Bitte zuerst die E-Mail-Adresse eintragen.','warn');
-    try{await AONE.recover(email);AONE.toast('E-Mail zum Zurücksetzen wurde angefordert.')}catch(e){AONE.toast(e.message,'err')}
+    try{await AONE.recover(email,mode);AONE.toast('E-Mail zum Zurücksetzen wurde angefordert.')}catch(e){AONE.toast(e.message,'err')}
   });
 })();
