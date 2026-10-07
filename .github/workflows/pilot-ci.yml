@@ -36,7 +36,7 @@ jobs:
         with:
           deno-version: v2.x
       - name: Typecheck employee import Edge Function
-        run: deno check supabase/functions/guard-import-employees/index.ts
+        run: deno check --node-modules-dir=auto supabase/functions/guard-import-employees/index.ts
 
   browser:
     name: Browser regression
