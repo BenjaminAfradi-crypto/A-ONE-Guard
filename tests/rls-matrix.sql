@@ -70,6 +70,16 @@ insert into rls_results select 'employee','shifts',count(*),1 from public.guard_
 insert into rls_results select 'employee','private_hr',count(*),0 from public.guard_employee_private where org_id='11111111-1111-4111-8111-111111111111';
 insert into rls_results select 'employee','documents',count(*),2 from public.guard_documents where org_id='11111111-1111-4111-8111-111111111111';
 insert into rls_results select 'employee','schedule_import_batches',count(*),0 from public.guard_schedule_import_batches where org_id='11111111-1111-4111-8111-111111111111';
+do $employee_import_write$
+declare rejected boolean:=false;
+begin
+  begin
+    insert into public.guard_schedule_import_batches(org_id,file_name,total_rows,imported_rows,status,created_by)
+    values('11111111-1111-4111-8111-111111111111','forbidden.xlsx',1,1,'completed','aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa4');
+  exception when others then rejected:=true;
+  end;
+  insert into rls_results values('employee','schedule_import_insert_rejected',case when rejected then 1 else 0 end,1);
+end $employee_import_write$;
 
 reset role;
 set local role authenticated;
@@ -79,6 +89,14 @@ insert into rls_results select 'dispatcher','employees',count(*),2 from public.g
 insert into rls_results select 'dispatcher','private_hr',count(*),0 from public.guard_employee_private where org_id='11111111-1111-4111-8111-111111111111';
 insert into rls_results select 'dispatcher','documents',count(*),3 from public.guard_documents where org_id='11111111-1111-4111-8111-111111111111';
 insert into rls_results select 'dispatcher','schedule_import_batches',count(*),1 from public.guard_schedule_import_batches where org_id='11111111-1111-4111-8111-111111111111';
+do $dispatcher_import_write$
+declare inserted_id uuid;
+begin
+  insert into public.guard_schedule_import_batches(org_id,file_name,total_rows,imported_rows,status,created_by)
+  values('11111111-1111-4111-8111-111111111111','allowed.xlsx',1,1,'completed','aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa3')
+  returning id into inserted_id;
+  insert into rls_results values('dispatcher','schedule_import_insert_allowed',case when inserted_id is not null then 1 else 0 end,1);
+end $dispatcher_import_write$;
 
 reset role;
 set local role authenticated;
