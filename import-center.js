@@ -155,25 +155,31 @@
     }
   }
   async function applyShifts(){
-    status('Dienstplan wird importiert …');const org=state.ctx.org_id,user=state.user.id;
-    const sites=await AONE.tableAll('guard_sites',`select=id,name,active&org_id=eq.${encodeURIComponent(org)}`),map=new Map(sites.map(s=>[AONE_IMPORT.norm(s.name),s.id])),createdSiteIds=[];
-    for(const name of state.plan.newSites){
-      if(map.has(AONE_IMPORT.norm(name)))continue;
-      const row=await AONE.insert('guard_sites',{org_id:org,name,active:true},true);const site=row?.[0];if(!site?.id)throw new Error('Objekt „'+name+'“ konnte nicht angelegt werden.');map.set(AONE_IMPORT.norm(name),site.id);createdSiteIds.push(site.id);
-    }
-    const ids=[],errors=[];let done=0;
-    for(const r of state.plan.accepted){
-      try{
-        const siteId=r.site_id||map.get(AONE_IMPORT.norm(r.site_name));if(!siteId)throw new Error('Objekt konnte nicht zugeordnet werden.');
-        const result=await AONE.insert('guard_shifts',{org_id:org,site_id:siteId,employee_id:r.employee_id,title:r.title||'Sicherheitsdienst',starts_at:r.starts_at,ends_at:r.ends_at,status:'planned',created_by:user},true);
-        if(!result?.[0]?.id)throw new Error('Server hat keine Schicht-ID zurückgegeben.');ids.push(result[0].id);done++;
-      }catch(e){errors.push({sheet:r.sheet,row:r.row,reason:e.message||'Schicht konnte nicht gespeichert werden.'})}
-    }
-    const statusCode=errors.length?(done?'partial':'failed'):'completed';
-    const batch=await AONE.insert('guard_schedule_import_batches',{org_id:org,file_name:state.file.name,file_sha256:state.sha,total_rows:state.parsed.sourceRows||state.plan.total,imported_rows:done,failed_rows:errors.length,created_shift_ids:ids,created_site_ids:createdSiteIds,errors,status:statusCode,created_by:user},true);
-    state.batchId=batch?.[0]?.id||null;q('#undo-import').hidden=!state.batchId||!ids.length;
+    status('Dienstplan wird serverseitig geprüft und importiert …');
+    const rows=state.plan.accepted.map(r=>({
+      sheet:r.sheet,
+      row:r.row,
+      employee_id:r.employee_id,
+      site_id:r.site_id||null,
+      site_name:r.site_name,
+      title:r.title||'Sicherheitsdienst',
+      starts_at:r.starts_at,
+      ends_at:r.ends_at,
+      required_qualification:r.required_qualification||'none'
+    }));
+    if(rows.length>2000)throw new Error('Maximal 2.000 Schichten pro Import. Bitte die Datei aufteilen.');
+    const result=await AONE.rpc('guard_apply_schedule_import',{
+      p_org:state.ctx.org_id,
+      p_file_name:state.file.name,
+      p_file_sha256:state.sha,
+      p_rows:rows,
+      p_create_missing_sites:q('#import-create-sites').checked
+    });
+    const done=Number(result?.imported||0),failed=Number(result?.failed||0),errors=Array.isArray(result?.errors)?result.errors:[];
+    state.batchId=result?.batch_id||null;
+    q('#undo-import').hidden=!state.batchId||done===0;
     if(errors.length){state.plan.issues.push(...errors);renderPlan()}
-    status(`Dienstplan importiert: ${done} Schichten gespeichert, ${errors.length} fehlgeschlagen. Jeder Mitarbeiter sieht nur seine eigenen zugeordneten Schichten.`,errors.length>0);
+    status(`Dienstplan importiert: ${done} Schichten gespeichert, ${failed} fehlgeschlagen. Jeder Mitarbeiter sieht nur seine eigenen zugeordneten Schichten.`,failed>0);
   }
   async function undo(){
     if(!state.batchId)return;const b=q('#undo-import');b.disabled=true;

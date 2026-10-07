@@ -90,12 +90,14 @@ insert into rls_results select 'dispatcher','private_hr',count(*),0 from public.
 insert into rls_results select 'dispatcher','documents',count(*),3 from public.guard_documents where org_id='11111111-1111-4111-8111-111111111111';
 insert into rls_results select 'dispatcher','schedule_import_batches',count(*),1 from public.guard_schedule_import_batches where org_id='11111111-1111-4111-8111-111111111111';
 do $dispatcher_import_write$
-declare inserted_id uuid;
+declare rejected boolean:=false;
 begin
-  insert into public.guard_schedule_import_batches(org_id,file_name,total_rows,imported_rows,status,created_by)
-  values('11111111-1111-4111-8111-111111111111','allowed.xlsx',1,1,'completed','aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa3')
-  returning id into inserted_id;
-  insert into rls_results values('dispatcher','schedule_import_insert_allowed',case when inserted_id is not null then 1 else 0 end,1);
+  begin
+    insert into public.guard_schedule_import_batches(org_id,file_name,total_rows,imported_rows,status,created_by)
+    values('11111111-1111-4111-8111-111111111111','forbidden-direct.xlsx',1,1,'completed','aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa3');
+  exception when others then rejected:=true;
+  end;
+  insert into rls_results values('dispatcher','schedule_import_direct_insert_rejected',case when rejected then 1 else 0 end,1);
 end $dispatcher_import_write$;
 
 reset role;
@@ -143,6 +145,11 @@ insert into rls_results values(
 insert into rls_results values(
  'all','membership_direct_delete_grant',
  case when has_table_privilege('authenticated','public.guard_memberships','delete') then 1 else 0 end,
+ 0
+);
+insert into rls_results values(
+ 'all','schedule_import_direct_insert_grant',
+ case when has_table_privilege('authenticated','public.guard_schedule_import_batches','insert') then 1 else 0 end,
  0
 );
 insert into rls_results values(

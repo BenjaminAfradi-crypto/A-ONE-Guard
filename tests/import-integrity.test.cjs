@@ -86,3 +86,11 @@ test('shift planner requires unambiguous employee match',()=>{
   assert.equal(plan.accepted.length,0);
   assert.match(plan.issues[0].reason,/Mitarbeiter fehlt/);
 });
+
+
+test('Dienstplan apply uses the guarded atomic RPC instead of direct browser writes',()=>{
+  const ui=fs.readFileSync('import-center.js','utf8');
+  assert.match(ui,/guard_apply_schedule_import/);
+  assert.doesNotMatch(ui,/AONE\.insert\(['"]guard_shifts['"]/);
+  assert.doesNotMatch(ui,/AONE\.insert\(['"]guard_schedule_import_batches['"]/);
+});
