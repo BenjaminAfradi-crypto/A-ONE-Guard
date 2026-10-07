@@ -26,7 +26,8 @@ const AONE_IMPORT=(()=>{
       const columns={};
       (grid[i]||[]).forEach((cell,j)=>{const match=field(cell);if(match&&columns[match]===undefined)columns[match]=j});
       let score=Object.keys(columns).length+(columns.employeeNo!==undefined?2:0)+(columns.displayName!==undefined?2:0)+(columns.date!==undefined?2:0);
-      if(!best||score>best.score)best={index:i,columns,score,headers:(grid[i]||[]).map(clean)};
+      const headers=(grid[i]||[]).map(clean),density=headers.filter(Boolean).length;
+      if(!best||score>best.score||(score===best.score&&density>best.density))best={index:i,columns,score,density,headers};
     }
     return best;
   }
