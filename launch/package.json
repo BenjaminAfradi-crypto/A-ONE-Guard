@@ -1,0 +1,33 @@
+{
+  "name": "a-one-guard-floot-launch-package",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --experimental-strip-types --test tests/*.test.ts",
+    "check": "node verification/check.mjs",
+    "patches": "node tools/make-floot-patches.mjs"
+  },
+  "engines": {
+    "node": ">=22.6"
+  },
+  "devDependencies": {
+    "@types/node": "24.0.0",
+    "@types/react": "18.3.12",
+    "@types/react-dom": "18.3.1",
+    "@types/react-helmet": "6.1.11",
+    "jszip": "3.10.1",
+    "typescript": "5.9.3"
+  },
+  "dependencies": {
+    "@tanstack/react-query": "5.90.2",
+    "kysely": "0.26.3",
+    "lucide-react": "0.468.0",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "react-helmet": "6.1.0",
+    "react-router-dom": "6.30.6",
+    "read-excel-file": "9.3.10",
+    "superjson": "2.2.2",
+    "zod": "3.25.76"
+  }
+}
