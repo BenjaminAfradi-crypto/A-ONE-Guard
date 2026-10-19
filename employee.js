@@ -70,14 +70,16 @@ const EMP = (()=>{
   async function clockIn(shift){
     AONE.loading(true,'Standort und Dienst werden geprüft…');
     try{let g=null;try{g=await AONE.geolocate()}catch(e){if(!confirm(`${e.message}\n\nOhne Standortprüfung einstempeln?`))throw e}
-      const id=await AONE.rpc('guard_clock_in_geo',{p_site:shift.site_id,p_shift:shift.id,p_method:g?'app_geo':'app_manual',p_lat:g?.lat??null,p_lng:g?.lng??null,p_accuracy_m:g?.accuracy??null});
+      if(g){await AONE.rpc('guard_clock_in_geo',{p_site:shift.site_id,p_shift:shift.id,p_method:'app',p_lat:g.lat,p_lng:g.lng,p_accuracy_m:g.accuracy});}
+      else{await AONE.rpc('guard_clock_in_nogeo',{p_site:shift.site_id,p_shift:shift.id,p_method:'manual'});}
       AONE.toast('Eingestempelt.');await loadAll();render();
     }catch(e){AONE.toast(e.message,'err')}finally{AONE.loading(false)}
   }
   async function clockOut(entry){
     if(!confirm('Dienst jetzt beenden und ausstempeln?'))return;AONE.loading(true,'Ausstempeln…');
     try{let g=null;try{g=await AONE.geolocate()}catch{}
-      await AONE.rpc('guard_clock_out_geo',{p_entry:entry.id,p_method:g?'app_geo':'app_manual',p_lat:g?.lat??null,p_lng:g?.lng??null,p_accuracy_m:g?.accuracy??null});
+      if(g){await AONE.rpc('guard_clock_out_geo',{p_entry:entry.id,p_method:'app',p_lat:g.lat,p_lng:g.lng,p_accuracy_m:g.accuracy});}
+      else{await AONE.rpc('guard_clock_out_nogeo',{p_entry:entry.id,p_method:'manual'});}
       AONE.toast('Ausgestempelt.');await loadAll();render();
     }catch(e){AONE.toast(e.message,'err')}finally{AONE.loading(false)}
   }
