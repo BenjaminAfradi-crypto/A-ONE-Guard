@@ -16,7 +16,7 @@ async function openPage(t,file='index.html',width=1280) {
   page.on('pageerror',e=>jsErrors.push(e.message));
   t.after(() => assert.deepEqual(jsErrors,[]));
   await context.route('**/*',async route => {
-    const u=new URL(route.request().url);
+    const u=new URL(route.request().url());
     if(u.hostname!=='launch.test') return route.abort();
     const filename=u.pathname.replace(/^\/+/,'')||'index.html';
     if(filename.includes('..'))return route.fulfill({status:400,body:'Invalid path'});
