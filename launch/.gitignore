@@ -1,0 +1,4 @@
+node_modules/
+.verification/
+patches/
+test-results/
