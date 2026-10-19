@@ -1,1 +1,108 @@
 .public-section{padding:34px 0}.public-section h2{font-size:clamp(28px,4vw,46px);margin:0 0 8px}.site-footer{margin-top:42px;padding:22px 0 12px;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:20px;align-items:flex-start;color:var(--muted);font-size:13px}.site-footer div{display:grid;gap:4px}.site-footer nav{display:flex;flex-wrap:wrap;gap:14px}.site-footer a,.text-link{color:#9bc7ff;text-decoration:underline;text-underline-offset:3px}.legal-shell{max-width:980px}.legal-card{background:rgba(18,25,35,.95);border:1px solid var(--line);border-radius:22px;padding:clamp(20px,4vw,42px);box-shadow:var(--shadow);line-height:1.65}.legal-card h1{font-size:clamp(32px,5vw,50px);margin:0 0 18px}.legal-card h2{font-size:20px;margin:28px 0 8px}.legal-card p{color:#c7d1dc}.legal-card strong{color:#fff}@media(max-width:680px){.site-footer{flex-direction:column}.site-footer nav{gap:10px 14px}.public-section{padding:24px 0}}
+
+/* A ONE Guard marketing site · independent interface */
+.aone-public{background:radial-gradient(ellipse at 80% 9%,#102340 0,transparent 35%),radial-gradient(ellipse at 0 27%,#101f32 0,transparent 30%),#0b1016}
+.aone-public .shell{max-width:1480px;padding:0 clamp(16px,3.8vw,56px)}
+.skip-link{position:fixed;z-index:1000;top:-80px;left:14px;background:#fff;color:#111;padding:12px 18px;border-radius:10px}
+.skip-link:focus{top:14px}
+.marketing-topbar{min-height:88px;gap:24px;background:rgba(11,16,22,.9);backdrop-filter:blur(20px);padding:16px 0;border-bottom:1px solid rgba(97,121,154,.12)}
+.marketing-topbar .brand{flex-shrink:0}
+.marketing-nav{display:flex;align-items:center;justify-content:center;gap:clamp(10px,2vw,30px)}
+.marketing-nav a{color:#a8b7c8;font-size:14px;font-weight:670;padding:12px 2px;white-space:nowrap}
+.marketing-nav a:hover,.marketing-nav a:focus-visible{color:#fff}
+.marketing-actions{display:flex;gap:9px;align-items:center}
+.marketing-actions .btn{white-space:nowrap;font-size:13px}
+.aone-public .btn.primary{background:linear-gradient(105deg,#3d8bfd,#2164c9);border-color:#387fea;box-shadow:0 8px 22px rgba(27,93,196,.22)}
+.aone-public .btn.primary:hover{filter:brightness(1.12)}
+.aone-public a:focus-visible,.aone-public button:focus-visible{outline:3px solid #a3d3ff;outline-offset:3px}
+.marketing-hero{min-height:650px;display:grid;grid-template-columns:minmax(0,.91fr) minmax(0,1.09fr);gap:clamp(28px,5vw,78px);align-items:center;padding:70px 0 86px}
+.marketing-copy{max-width:670px}
+.marketing-overline{color:#a7c6eb;font-size:12px;letter-spacing:1.1px;font-weight:850;display:flex;align-items:center;gap:9px;margin-bottom:25px}
+.status-dot{width:8px;height:8px;display:inline-block;border-radius:50%;background:#57c98c;box-shadow:0 0 0 5px rgba(87,201,140,.09)}
+.marketing-copy h1{font-size:clamp(46px,5.2vw,77px);line-height:1.075;letter-spacing:-.052em;margin:0 0 25px;font-weight:875}
+.marketing-copy h1 span{color:#70adff}
+.marketing-copy>p{color:#b3c1d1;line-height:1.72;font-size:clamp(16px,1.6vw,19px);max-width:590px}
+.marketing-cta{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin:27px 0}
+.marketing-cta .btn{padding:15px 21px;font-weight:800}
+.marketing-proof{display:flex;flex-wrap:wrap;gap:12px 18px;color:#bbc8d7;font-size:12px;font-weight:680;padding-top:7px}
+.marketing-copy .marketing-disclaimer{font-size:12px;color:#8395a9;line-height:1.55;margin-top:22px}
+.marketing-preview{min-width:0;position:relative;padding-bottom:38px;padding-right:45px}
+.mock-window{overflow:hidden;background:linear-gradient(150deg,#111b28,#0b111a);border:1px solid #29405c;border-radius:19px;box-shadow:0 44px 110px rgba(0,0,0,.42),0 0 80px rgba(41,105,187,.09)}
+.mock-bar{display:flex;justify-content:space-between;align-items:center;gap:8px;border-bottom:1px solid #253449;padding:13px 17px;background:#121d2b}
+.mock-brand{font-size:10px;font-weight:850;letter-spacing:.5px;display:flex;align-items:center;gap:7px;color:#dce9f9}
+.mock-pill{font-size:9px;letter-spacing:.6px;font-weight:850;color:#96c6fe;background:#152a43;padding:6px 10px;border:1px solid #274973;border-radius:99px}
+.mock-pill i{display:inline-block;width:5px;height:5px;border-radius:50%;background:#6eabff;vertical-align:middle;margin-right:3px}
+.mock-body{padding:20px}
+.mock-greeting{display:flex;justify-content:space-between;align-items:end;gap:10px;margin:0 0 20px}
+.mock-greeting small{font-size:9px;letter-spacing:.8px;color:#86a8cb}
+.mock-greeting h2{font-size:19px;margin:5px 0 0;letter-spacing:-.5px}
+.mock-greeting>span{color:#8fa2b9;font-size:10px;white-space:nowrap}
+.mock-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+.mock-metrics>div{background:#182639;border:1px solid #2b4059;border-radius:11px;padding:15px 12px;display:grid;gap:6px}
+.mock-metrics small{font-size:10px;color:#9eb4ca}
+.mock-metrics strong{font-size:28px;color:#f8fbff;line-height:1.1}
+.mock-metrics span{color:#90adce;font-size:10px}
+.mock-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:11px;margin-top:13px}
+.mock-panel{padding:15px;background:#101b29;border-radius:12px;border:1px solid #263a52;min-width:0}
+.mock-panel-top{display:flex;justify-content:space-between;align-items:center;gap:6px;margin-bottom:13px}
+.mock-panel-top b{font-size:12px}
+.mock-panel-top span{font-size:10px;color:#839bb3}
+.mock-duty{display:flex;align-items:center;gap:8px;padding:10px 0;border-top:1px solid #233247}
+.mock-indicator{width:6px;height:6px;border-radius:50%;flex-shrink:0;background:#59d99d}
+.mock-indicator.amber{background:#f6c344}
+.mock-duty>div{flex:1;min-width:0;display:grid;gap:3px}
+.mock-duty b,.mock-patrol b{font-size:11px}
+.mock-duty small,.mock-patrol small{font-size:9px;color:#8fa5bf}
+.mock-tag{font-size:9px;color:#8ef1ba;background:#174c32;border-radius:6px;padding:4px 5px}
+.mock-tag.amber{background:#3e3216;color:#ffde8f}
+.mock-patrol{padding:10px 0;border-top:1px solid #233247}
+.mock-patrol>div:first-child{display:grid;gap:4px}
+.mock-track{height:6px;background:#25344a;border-radius:12px;overflow:hidden;margin-top:9px}
+.mock-track i{display:block;height:100%;background:linear-gradient(90deg,#2d69bb,#60aaff);border-radius:12px}
+.mock-footer{display:flex;gap:16px;flex-wrap:wrap;margin-top:16px;color:#6485aa;font-size:9px;font-weight:800;letter-spacing:.5px}
+.marketing-phone{position:absolute;width:164px;right:-2px;bottom:-11px;border:5px solid #27384c;outline:1px solid #57769a;border-radius:27px;background:linear-gradient(165deg,#182a40,#0d1724);box-shadow:0 24px 60px rgba(0,0,0,.6);min-height:292px;display:flex;flex-direction:column;align-items:stretch;gap:9px;padding:19px 12px 13px;text-align:center}
+.marketing-phone img{margin:2px auto}
+.marketing-phone small{font-size:9px;color:#8cb9f3;font-weight:850}
+.marketing-phone b{font-size:14px}
+.marketing-phone span{color:#b4c5d8;font-size:11px}
+.marketing-phone strong{font-size:16px}
+.phone-ear{position:absolute;width:48px;height:6px;background:#101b2b;border-radius:9px;top:6px;left:50%;transform:translateX(-50%)}
+.phone-button{font-size:11px;font-weight:800;color:#fff;background:#326bc7;border-radius:9px;padding:11px 5px;margin-top:6px}
+.phone-tasks{display:flex;gap:6px;justify-content:center;margin-top:auto}
+.phone-tasks span{background:#1d3048;padding:6px 4px;border:1px solid #2e4a68;border-radius:7px;font-size:9px}
+.marketing-strip{border-top:1px solid #293746;border-bottom:1px solid #293746;display:flex;justify-content:center;align-items:center;gap:clamp(10px,2.4vw,33px);flex-wrap:wrap;padding:22px 8px;color:#7f95ac;font-size:11px;font-weight:850;letter-spacing:1.15px}
+.marketing-strip i{height:4px;width:4px;display:inline-block;border-radius:50%;background:#496382}
+.aone-public .public-section{padding:80px 0}
+.marketing-section-head{display:flex;justify-content:space-between;align-items:end;gap:35px;margin-bottom:28px}
+.marketing-section-head h2,.marketing-pricing h2,.marketing-contact h2{font-size:clamp(34px,4vw,55px);letter-spacing:-.045em;line-height:1.1;margin:12px 0 0}
+.marketing-section-head>p{color:#a7b6c8;line-height:1.65;font-size:15px;max-width:440px}
+.marketing-features{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:15px}
+.feature-card{display:flex;flex-direction:column;align-items:start;min-height:260px;padding:28px;border:1px solid #2a394c;border-radius:19px;background:linear-gradient(145deg,#162130,#111923);transition:border-color .15s,transform .15s}
+.feature-card:hover{border-color:#4170a7;transform:translateY(-3px)}
+.feature-symbol{display:grid;place-items:center;width:45px;height:45px;border-radius:12px;background:#1d3856;border:1px solid #335c88;color:#b2d4ff;font-size:13px;font-weight:850}
+.feature-card h3{font-size:20px;line-height:1.2;margin:21px 0 7px;letter-spacing:-.5px}
+.feature-card p{font-size:14px;color:#aebccd;line-height:1.65;margin:0 0 21px}
+.feature-card a{margin-top:auto;color:#93c4ff;font-size:13px;font-weight:800}
+.workflow-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.workflow-grid article{position:relative;border-top:2px solid #365b86;padding:23px 13px 10px 0}
+.workflow-grid article>span{font-size:11px;font-weight:850;letter-spacing:.8px;color:#83b2ed}
+.workflow-grid h3{font-size:23px;letter-spacing:-.7px;margin:22px 0 9px}
+.workflow-grid p{line-height:1.65;color:#acbacb;font-size:14px}
+.marketing-pricing{display:grid;grid-template-columns:1.05fr .95fr;gap:28px;align-items:center;background:linear-gradient(130deg,#152941 0,#10202f 47%,#111b28 100%);border:1px solid #2c4967;border-radius:27px;padding:clamp(22px,5vw,62px)}
+.marketing-pricing>div:first-child{max-width:570px}
+.marketing-pricing>div:first-child p{line-height:1.7;color:#b2c5d9;font-size:16px;margin:20px 0 30px}
+.pricing-sheet{padding:30px;background:#101923;border:1px solid #395574;border-radius:20px;max-width:440px;width:100%;justify-self:end;box-shadow:0 20px 60px rgba(0,0,0,.18)}
+.pricing-sheet .price{margin:14px 0 7px;white-space:nowrap}
+.pricing-sheet p{font-size:14px;line-height:1.6;color:#afbfce;margin:12px 0 24px}
+.pricing-sheet .btn{padding:15px}
+.pricing-sheet .pricing-link{display:block;margin:14px 0;text-align:center;color:#a9d2ff;text-decoration:underline;text-underline-offset:4px;font-size:13px}
+.pricing-sheet>small{font-size:11px;color:#8194a9;line-height:1.45;display:block}
+.marketing-contact{display:flex;justify-content:space-between;align-items:center;gap:30px;border-radius:23px;padding:36px;background:#141f2d;border:1px solid #293e54}
+.marketing-contact p{color:#acbccc;line-height:1.6}
+.marketing-contact .btn{white-space:nowrap;padding:15px 19px}
+.marketing-footer{padding:32px 0;margin:10px 0 0!important}
+@media(max-width:1200px){.marketing-nav{display:none}.marketing-topbar{justify-content:space-between}.marketing-hero{gap:28px}.marketing-phone{right:-8px}}
+@media(max-width:980px){.marketing-hero{grid-template-columns:1fr;padding:48px 0 60px}.marketing-copy{max-width:790px}.marketing-preview{max-width:790px;width:100%;margin:auto}.marketing-features{grid-template-columns:repeat(2,minmax(0,1fr))}.marketing-pricing{grid-template-columns:1fr}.pricing-sheet{max-width:none}.marketing-section-head{flex-direction:column;align-items:start;gap:7px}.marketing-section-head>p{max-width:680px}.aone-public .public-section{padding:56px 0}}
+@media(max-width:680px){.marketing-topbar{min-height:70px;align-items:center}.marketing-topbar .brand b{font-size:15px}.marketing-actions{margin-left:auto}.marketing-actions .btn{padding:10px;font-size:12px}.marketing-actions .btn.ghost{display:none}.marketing-hero{padding:36px 0 46px}.marketing-copy h1{font-size:clamp(39px,10.5vw,62px);letter-spacing:-1.8px}.marketing-copy>p{font-size:16px}.marketing-cta{align-items:stretch}.marketing-cta .btn{width:100%;text-align:center}.marketing-preview{padding:0 13px 30px 0}.mock-body{padding:12px}.mock-grid{grid-template-columns:1fr}.mock-window{border-radius:13px}.mock-greeting>span{display:none}.mock-duty small{font-size:10px}.mock-metrics>div{padding:10px 7px}.mock-metrics strong{font-size:23px}.mock-metrics small{font-size:9px}.mock-panel{padding:11px}.marketing-phone{display:none}.marketing-strip{gap:10px 14px;font-size:9px}.marketing-strip i{display:none}.marketing-features,.workflow-grid{grid-template-columns:1fr}.feature-card{min-height:235px;padding:23px}.marketing-pricing{padding:20px}.pricing-sheet{padding:21px}.marketing-contact{flex-direction:column;align-items:start;padding:24px}.marketing-contact .btn{width:100%;text-align:center}}
+@media(prefers-reduced-motion:reduce){.feature-card{transition:none}.feature-card:hover{transform:none}}
+@media print{.marketing-topbar,.marketing-cta,.marketing-actions,.marketing-preview,.marketing-contact .btn{display:none!important}}
