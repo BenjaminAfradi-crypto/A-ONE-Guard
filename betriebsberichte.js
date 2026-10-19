@@ -42,7 +42,6 @@
     const today = new Date(), from = new Date(today.getFullYear(), today.getMonth(), today.getDate()-6);
     $('through').value = isoDay(today);
     $('from').value = isoDay(from);
-    const org = 'eq.' + state.ctx.org_id;
     const [sites,employees,routes,checkpoints] = await Promise.all([
       all('guard_sites',{select:'id,name',order:'name.asc'}),
       all('guard_employees',{select:'id,display_name',order:'display_name.asc'}),
@@ -81,17 +80,17 @@
     clearResults();
     $('load').disabled = true;
     const kind = $('kind').value, site = $('site').value;
+    const fromValue = $('from').value, throughValue = $('through').value;
+    for (const id of ['kind','from','through','site']) $(id).disabled = true;
     try {
-      const p = core.period($('from').value,$('through').value);
-      const periodFilter = kind === 'watchbook'
-        ? {occurred_at:'gte.' + p.from, 'occurred_at_end':'',} : {};
+      const p = core.period(fromValue,throughValue);
       // End-exclusive bounds remain correct across DST transitions.
       text('report-state','Lade sämtliche Seiten für ' + p.days + ' Tage …');
       let lines;
       if (kind === 'watchbook') {
         const list = await all('guard_watchbook_entries',{
           select:'id,site_id,employee_id,category,severity,body,occurred_at',
-          occurred_at:'gte.' + p.from, and:'(occurred_at.lt.' + p.until + ')',
+          and:'(occurred_at.gte.' + p.from + ',occurred_at.lt.' + p.until + ')',
           order:'occurred_at.asc,id.asc'
         });
         lines = list.filter(x => !site || x.site_id === site).map(x => [
@@ -102,7 +101,7 @@
       } else if (kind === 'patrol') {
         const runs = await all('guard_patrol_runs',{
           select:'id,route_id,employee_id,started_at,completed_at,status',
-          started_at:'gte.' + p.from, and:'(started_at.lt.' + p.until + ')',
+          and:'(started_at.gte.' + p.from + ',started_at.lt.' + p.until + ')',
           order:'started_at.asc,id.asc'
         });
         const ids = runs.map(x => x.id);
@@ -133,7 +132,7 @@
       } else throw new Error('Unbekannte Berichtsart.');
       state.headers = options[kind];
       state.rows = lines;
-      state.selection = {kind,from:$('from').value,through:$('through').value,site};
+      state.selection = {kind,from:fromValue,through:throughValue,site};
       showResults();
     } catch (error) {
       clearResults();
@@ -141,6 +140,7 @@
       text('report-state','Kein Bericht geladen.');
     } finally {
       $('load').disabled = false; state.busy = false;
+      for (const id of ['kind','from','through','site']) $(id).disabled = false;
     }
   }
   function showResults() {
