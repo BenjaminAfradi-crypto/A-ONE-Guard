@@ -1,0 +1,56 @@
+/* A ONE Guard App Experience (management and employee), scoped to avoid affecting forms and public pages. */
+.aone-app-shell{background:radial-gradient(ellipse 80% 40% at 100% -20%,#102747 0,transparent 62%),#0b1016}
+.aone-app-shell .shell{max-width:1580px;padding:16px clamp(14px,2vw,32px)}
+.aone-app-shell .topbar{min-height:70px;margin-bottom:15px;padding:12px 0;background:rgba(11,16,22,.94);backdrop-filter:blur(18px);border-bottom:1px solid #233146}
+.aone-app-shell .brand b{font-size:18px;font-weight:870;letter-spacing:-.3px}
+.aone-app-shell .brand span{font-size:11px;letter-spacing:.2px}
+.aone-app-shell .top-actions{gap:7px}
+.aone-app-shell .top-actions .btn{padding:8px 10px;border-radius:9px;font-size:12px;background:#111d2c}
+.aone-app-shell .top-actions .btn:hover{background:#1b3149}
+.aone-app-shell .layout{grid-template-columns:258px minmax(0,1fr);gap:22px}
+.aone-app-shell .sidebar{top:92px;height:calc(100dvh - 115px);background:linear-gradient(155deg,#131f2d,#101821);border:1px solid #2c3c50;border-radius:19px;padding:13px 10px;scrollbar-width:thin;scrollbar-color:#334b63 transparent}
+.aone-app-shell .sidebar .nav-btn{font-size:13px;padding:12px 13px;border-radius:10px;line-height:1.3;transition:background-color .15s,color .15s}
+.aone-app-shell .sidebar .nav-btn.active{background:#1d3856;box-shadow:inset 3px 0 #63a3ff;color:#fff}
+.aone-app-shell .sidebar a.nav-btn{text-decoration:none}
+.aone-app-shell .content{min-height:75dvh}
+.aone-app-shell .page-head{margin:8px 0 21px;align-items:center}
+.aone-app-shell .page-head h1{font-size:clamp(25px,3vw,36px);font-weight:850;letter-spacing:-1.1px}
+.aone-app-shell .page-head p{font-size:13px;line-height:1.6}
+.aone-app-shell .card{background:linear-gradient(155deg,#162130,#111923);border:1px solid #27384d;border-radius:18px;box-shadow:0 8px 28px rgba(0,0,0,.09);padding:21px}
+.aone-app-shell .card .kicker{letter-spacing:1px}
+.aone-app-shell .card .stat{font-size:clamp(29px,3vw,40px);letter-spacing:-1.5px}
+.aone-app-shell .grid.cols-4{gap:13px}
+.aone-app-shell .clock{background:linear-gradient(130deg,#163859,#101d2b);border:1px solid #355b82;box-shadow:0 12px 35px rgba(13,48,89,.18)}
+.aone-app-shell .btn.primary{background:#367fea;border-color:#4087ec}
+.aone-app-shell .btn:focus-visible,.aone-app-shell .nav-btn:focus-visible,.aone-app-shell a:focus-visible{outline:3px solid #a9d0ff;outline-offset:2px}
+.aone-app-shell .btn:disabled{opacity:.45;cursor:not-allowed}
+.aone-app-shell .table th{background:#182638;color:#a4b5c7}
+.aone-app-shell .table tr:hover td{background:rgba(47,80,113,.12)}
+.aone-app-shell .empty{padding:26px 12px}
+.aone-app-shell .modal{background:#111b28}
+.aone-app-shell .pill{letter-spacing:.15px}
+@media(max-width:1100px){
+  .aone-app-shell .layout{grid-template-columns:1fr}
+  .aone-app-shell .sidebar{display:none}
+  .aone-app-shell .content{padding-bottom:100px}
+  .aone-app-shell .mobile-tabs{display:flex;position:fixed;z-index:45;bottom:0;left:0;right:0;gap:6px;padding:8px 10px calc(8px + env(safe-area-inset-bottom));background:rgba(9,16,24,.96);border-top:1px solid #31425a;box-shadow:0 -15px 35px rgba(0,0,0,.25);backdrop-filter:blur(15px);overflow:auto;overscroll-behavior-x:contain;scrollbar-width:none}
+  .aone-app-shell .mobile-tabs::-webkit-scrollbar{display:none}
+  .aone-app-shell .mobile-tabs .nav-btn{display:flex;justify-content:center;min-width:max-content;padding:10px 13px;font-size:12px;border:1px solid #27384c;border-radius:10px;background:#101b2a}
+  .aone-app-shell .mobile-tabs .nav-btn.active{background:#20436b;border-color:#35689f}
+}
+@media(max-width:700px){
+  .aone-app-shell .shell{padding:9px 12px}
+  .aone-app-shell .topbar{min-height:60px;align-items:flex-start;padding:10px 0 12px;gap:7px}
+  .aone-app-shell .topbar .brand{align-self:center}
+  .aone-app-shell .topbar .brand img{width:30px;height:30px}
+  .aone-app-shell .topbar .brand b{font-size:16px}
+  .aone-app-shell .top-actions{display:flex;flex-wrap:nowrap;overflow:auto;max-width:100%;padding-bottom:3px;scrollbar-width:none}
+  .aone-app-shell .top-actions::-webkit-scrollbar{display:none}
+  .aone-app-shell .top-actions .btn{flex:0 0 auto;white-space:nowrap}
+  .aone-app-shell .page-head{align-items:start}
+  .aone-app-shell .page-head .row{width:auto}
+  .aone-app-shell .card{padding:16px}
+  .aone-app-shell .grid.cols-4{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .aone-app-shell .clock-time{font-size:33px}
+}
+@media(prefers-reduced-motion:reduce){.aone-app-shell .nav-btn{transition:none}}
