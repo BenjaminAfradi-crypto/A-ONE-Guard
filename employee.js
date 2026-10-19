@@ -5,8 +5,8 @@ const EMP = (()=>{
   const shiftForEntry=e=>S.shifts.find(x=>x.id===e.shift_id);
   const activeEntry=()=>S.entries.find(x=>!x.clock_out_at);
   const openBreak=()=>{const e=activeEntry();return e?S.breaks.find(b=>b.time_entry_id===e.id&&!b.ended_at):null};
-  const myUpcoming=()=>S.shifts.filter(x=>new Date(x.ends_at)>new Date(Date.now()-12*3600000)).sort((a,b)=>new Date(a.starts_at)-new Date(b.starts_at));
-  const todayShifts=()=>S.shifts.filter(x=>new Date(x.starts_at).toDateString()===new Date().toDateString());
+  const myUpcoming=()=>S.shifts.filter(x=>x.employee_id===S.emp?.id&&x.status!=='canceled'&&new Date(x.ends_at)>new Date()).sort((a,b)=>new Date(a.starts_at)-new Date(b.starts_at));
+  const todayShifts=()=>S.shifts.filter(x=>x.employee_id===S.emp?.id&&x.status!=='canceled'&&new Date(x.starts_at).toDateString()===new Date().toDateString());
   const nextShift=()=>myUpcoming()[0]||null;
 
   async function boot(){
@@ -55,7 +55,7 @@ const EMP = (()=>{
   function renderToday(){
     const entry=activeEntry(), br=openBreak(), shifts=todayShifts(), next=nextShift();
     const target=shifts.find(s=>new Date(s.ends_at)>new Date())||next;
-    view().innerHTML=`<div class="page-head"><div><h1>Heute</h1><p>${AONE.esc(S.emp.display_name)} · ${AONE.esc(S.ctx.org.name)}</p></div><span class="pill blue">${AONE.esc(S.emp.qualification_level||'Mitarbeiter')}</span></div>
+    view().innerHTML=`<div class="page-head"><div><h1>Heute</h1><p>${AONE.esc(S.emp.display_name)} · ${AONE.esc(S.ctx.org.name)}</p></div><div class="row wrap"><span class="pill blue">${AONE.esc(S.emp.qualification_level||'Mitarbeiter')}</span><button class="btn small" id="refresh-employee" type="button">Aktualisieren</button></div></div>
       ${entry?`<section class="clock"><div class="row between wrap"><div><div class="kicker">Dienst aktiv · ${AONE.esc(siteName(entry.site_id))}</div><div class="clock-time" id="live-clock">00:00:00</div><div class="muted">Eingestempelt ${AONE.dt(entry.clock_in_at)}</div></div><div class="row wrap"><button class="btn" id="break-btn">${br?'Pause beenden':'Pause starten'}</button><button class="btn red" id="clockout-btn">Ausstempeln</button></div></div></section>`:
       target?`<section class="clock"><div class="kicker">${shifts.includes(target)?'Heutiger Dienst':'Nächster Dienst'}</div><div class="shift-time">${AONE.esc(siteName(target.site_id))}</div><div class="muted">${AONE.dt(target.starts_at)} – ${AONE.t(target.ends_at)} · ${AONE.esc(target.title)}</div><div style="margin-top:16px"><button class="btn green" id="clockin-btn">Einstempeln</button></div></section>`:
       `<div class="card"><h2>Kein geplanter Dienst</h2><p class="muted">Aktuell ist keine kommende Schicht eingetragen.</p></div>`}
@@ -63,6 +63,7 @@ const EMP = (()=>{
       <div class="grid cols-2" style="margin-top:14px"><div class="card"><h3>Heutige Schichten</h3>${shifts.length?shifts.map(shiftCard).join(''):'<div class="empty">Keine Schicht heute</div>'}</div><div class="card"><h3>Schnellzugriff</h3><div class="grid cols-2"><button class="btn" data-go="watchbook">Wachbuch</button><button class="btn" data-go="wks">WKS-Rundgang</button><button class="btn" data-go="learn">§34a Training</button><button class="btn" data-go="profile">Urlaub / Krank</button></div></div></div>`;
     if(entry){startTimer(entry);AONE.qs('#clockout-btn').onclick=()=>clockOut(entry);AONE.qs('#break-btn').onclick=()=>toggleBreak(entry,br)} else if(target) AONE.qs('#clockin-btn').onclick=()=>clockIn(target);
     AONE.qsa('[data-go]').forEach(x=>x.onclick=()=>navigate(x.dataset.go));
+    AONE.qs('#refresh-employee').onclick=()=>location.reload();
   }
   function monthHours(){ const now=new Date(),from=new Date(now.getFullYear(),now.getMonth(),1),to=new Date(now.getFullYear(),now.getMonth()+1,1); return S.entries.reduce((sum,e)=>sum+AONE.entryHours(e,S.breaks,{from,to,now}).net,0); }
   function shiftCard(s){return `<div class="shift-card" style="padding:10px 0;border-bottom:1px solid var(--line)"><div><b>${AONE.esc(siteName(s.site_id))}</b><div class="muted">${AONE.dt(s.starts_at)} – ${AONE.t(s.ends_at)}</div></div><span class="pill">${AONE.esc(s.title)}</span></div>`}
@@ -70,14 +71,16 @@ const EMP = (()=>{
   async function clockIn(shift){
     AONE.loading(true,'Standort und Dienst werden geprüft…');
     try{let g=null;try{g=await AONE.geolocate()}catch(e){if(!confirm(`${e.message}\n\nOhne Standortprüfung einstempeln?`))throw e}
-      const id=await AONE.rpc('guard_clock_in_geo',{p_site:shift.site_id,p_shift:shift.id,p_method:g?'app_geo':'app_manual',p_lat:g?.lat??null,p_lng:g?.lng??null,p_accuracy_m:g?.accuracy??null});
+      if(g){await AONE.rpc('guard_clock_in_geo',{p_site:shift.site_id,p_shift:shift.id,p_method:'app',p_lat:g.lat,p_lng:g.lng,p_accuracy_m:g.accuracy});}
+      else{await AONE.rpc('guard_clock_in_nogeo',{p_site:shift.site_id,p_shift:shift.id,p_method:'manual'});}
       AONE.toast('Eingestempelt.');await loadAll();render();
     }catch(e){AONE.toast(e.message,'err')}finally{AONE.loading(false)}
   }
   async function clockOut(entry){
     if(!confirm('Dienst jetzt beenden und ausstempeln?'))return;AONE.loading(true,'Ausstempeln…');
     try{let g=null;try{g=await AONE.geolocate()}catch{}
-      await AONE.rpc('guard_clock_out_geo',{p_entry:entry.id,p_method:g?'app_geo':'app_manual',p_lat:g?.lat??null,p_lng:g?.lng??null,p_accuracy_m:g?.accuracy??null});
+      if(g){await AONE.rpc('guard_clock_out_geo',{p_entry:entry.id,p_method:'app',p_lat:g.lat,p_lng:g.lng,p_accuracy_m:g.accuracy});}
+      else{await AONE.rpc('guard_clock_out_nogeo',{p_entry:entry.id,p_method:'manual'});}
       AONE.toast('Ausgestempelt.');await loadAll();render();
     }catch(e){AONE.toast(e.message,'err')}finally{AONE.loading(false)}
   }

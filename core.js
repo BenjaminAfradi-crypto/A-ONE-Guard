@@ -58,8 +58,10 @@ const AONE = (() => {
     if(!s.expires_at || Date.now()>s.expires_at) s=await refreshSession().catch(()=>null);
     return s;
   }
-  async function signUp(email,password,displayName){
-    return authFetch('signup',{email,password,data:{display_name:displayName,full_name:displayName,aone_guard:true}});
+  async function signUp(email,password,displayName,companyName=''){
+    const data={display_name:displayName,full_name:displayName,aone_guard:true};
+    if(companyName) data.aone_pending_company=String(companyName).trim().slice(0,160);
+    return authFetch('signup',{email,password,data});
   }
   async function recover(email,returnMode='employee'){
     const mode=['employee','admin','developer'].includes(returnMode)?returnMode:'employee';
