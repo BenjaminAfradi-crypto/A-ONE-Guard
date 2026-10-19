@@ -94,3 +94,30 @@ test('Dienstplan apply uses the guarded atomic RPC instead of direct browser wri
   assert.doesNotMatch(ui,/AONE\.insert\(['"]guard_shifts['"]/);
   assert.doesNotMatch(ui,/AONE\.insert\(['"]guard_schedule_import_batches['"]/);
 });
+
+
+test('employee import preserves common German HR fields for the backend',()=>{
+  const parsed=I.parseWorkbook({SheetNames:['Personal'],Sheets:{Personal:[
+    ['Personalnummer','Name','Bewacher-ID','Eintrittsdatum','Geburtsdatum','Adresse','PLZ','Ort','Stundenlohn','Urlaubstage','Stunden'],
+    ['P-9','Nora Beispiel','BWR-42','01.10.2026','17.08.2002','Musterweg 5','35390','Gießen','17,50','30','40']
+  ]}},'employees');
+  assert.equal(parsed.problems.length,0);
+  assert.equal(parsed.rows.length,1);
+  const row=parsed.rows[0];
+  assert.equal(row.bewacher_id,'BWR-42');
+  assert.equal(row.private.employment_start_date,'2026-10-01');
+  assert.equal(row.private.birth_date,'2002-08-17');
+  assert.equal(row.private.postal_code,'35390');
+  assert.equal(row.private.city,'Gießen');
+  assert.equal(row.private.extra_fields.weekly_hours,40);
+  assert.equal(row.hourly_rate_cents,1750);
+  assert.equal(row.vacation_days_annual,30);
+});
+
+test('tracked employee import Edge Function has an executable XLSX import and env-only service key',()=>{
+  const edge=fs.readFileSync('supabase/functions/guard-import-employees/index.ts','utf8');
+  assert.match(edge,/import \* as XLSX from "https:\/\/cdn\.sheetjs\.com\/xlsx-0\.20\.3\/package\/xlsx\.mjs"/);
+  assert.doesNotMatch(edge,/\\nimport \* as XLSX/);
+  assert.match(edge,/Deno\.env\.get\("SUPABASE_SERVICE_ROLE_KEY"\)/);
+  assert.doesNotMatch(edge,/service_role\s*[:=]\s*["'][A-Za-z0-9._-]{20,}/i);
+});

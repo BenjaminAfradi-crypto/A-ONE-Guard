@@ -31,6 +31,12 @@ jobs:
         run: npm run test:syntax
       - name: Planning and time integrity
         run: npm run test:unit
+      - name: Setup Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Typecheck employee import Edge Function
+        run: deno check --node-modules-dir=auto --allow-import=cdn.sheetjs.com,jsr.io supabase/functions/guard-import-employees/index.ts
 
   browser:
     name: Browser regression

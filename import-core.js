@@ -9,6 +9,15 @@ const AONE_IMPORT=(()=>{
     email:['email','emailadresse','mail','e mail','e-mail','emailaddress'],
     phone:['telefon','handy','mobil','mobilnummer','telefonnummer','phone','mobile'],
     qualification:['qualifikation','sachkunde','nachweis','qualification','§34a','34a','ausbildung'],
+    bewacherId:['bewacherid','bewacher-id','bewacher id','bewacherregister','bwr id'],
+    birthDate:['geburtsdatum','geburtstag','birthdate','dateofbirth'],
+    employmentStart:['eintrittsdatum','eintritt','beschaftigungsbeginn','beschäftigungsbeginn','startdatum','employmentstart'],
+    street:['strasse','straße','adresse','anschrift','street','address'],
+    postalCode:['plz','postleitzahl','postalcode','zipcode'],
+    city:['ort','stadt','city'],
+    hourlyRate:['stundenlohn','stundenlohn eur','lohn pro stunde','hourlyrate','hourly rate'],
+    vacationDays:['urlaubstage','urlaubstage jahr','jahresurlaub','vacationdays'],
+    weeklyHours:['stunden','wochenstunden','vertragsstunden','stunden woche','weeklyhours','hoursperweek'],
     date:['datum','date','diensttag','einsatztag','tag'],
     start:['beginn','start','dienstbeginn','von','startzeit','starttime','schichtbeginn','uhrzeitvon'],
     end:['ende','bis','endzeit','endtime','dienstende','schichtende','uhrzeitbis'],
@@ -41,6 +50,15 @@ const AONE_IMPORT=(()=>{
     return out;
   }
   const at=(row,index)=>index===undefined?'':clean(row[index]);
+  function numberValue(value){
+    if(value===null||value===undefined||value==='')return null;
+    if(typeof value==='number')return Number.isFinite(value)?value:null;
+    let text=clean(value).replace(/[€\s]/g,'');
+    if(!text)return null;
+    if(/^-?\d{1,3}(?:\.\d{3})+(?:,\d+)?$/.test(text))text=text.replace(/\./g,'').replace(',','.');
+    else if(text.includes(','))text=text.replace(/\./g,'').replace(',','.');
+    const n=Number(text);return Number.isFinite(n)?n:null;
+  }
   function validDate(year,month,day){const d=new Date(Date.UTC(year,month-1,day));return d.getUTCFullYear()===year&&d.getUTCMonth()+1===month&&d.getUTCDate()===day?{year,month,day}:null}
   function datePart(value){
     if(value instanceof Date&&!Number.isNaN(value.getTime()))return validDate(value.getUTCFullYear(),value.getUTCMonth()+1,value.getUTCDate());
@@ -49,6 +67,7 @@ const AONE_IMPORT=(()=>{
     if(m){const y=Number(m[3])<100?2000+Number(m[3]):Number(m[3]);return validDate(y,Number(m[2]),Number(m[1]))}
     m=text.match(/^(\d{4})-(\d{2})-(\d{2})(?:T.*)?$/);return m?validDate(Number(m[1]),Number(m[2]),Number(m[3])):null;
   }
+  function dateIso(value){const p=datePart(value);return p?`${p.year}-${String(p.month).padStart(2,'0')}-${String(p.day).padStart(2,'0')}`:''}
   function timePart(value){
     if(value instanceof Date&&!Number.isNaN(value.getTime()))return {hour:value.getUTCHours(),minute:value.getUTCMinutes()};
     if(typeof value==='number'&&value>=0&&value<1){const mins=Math.round(value*1440)%1440;return {hour:Math.floor(mins/60),minute:mins%60}}
@@ -100,10 +119,27 @@ const AONE_IMPORT=(()=>{
       const nameOf=row=>at(row,c.displayName)||[at(row,c.firstName),at(row,c.lastName)].filter(Boolean).join(' ');
       if(kind==='employees'){
         for(let i=h.index+1;i<grid.length;i++){const row=grid[i]||[];if(row.every(v=>!clean(v)))continue;sourceRows++;
-          const item={sheet,row:i+1,employee_no:at(row,c.employeeNo),display_name:nameOf(row),email:at(row,c.email).toLowerCase(),phone:at(row,c.phone),qualification_level:normalizeQualification(at(row,c.qualification))};
+          const birthRaw=at(row,c.birthDate),startRaw=at(row,c.employmentStart),rateRaw=at(row,c.hourlyRate),vacationRaw=at(row,c.vacationDays),weeklyRaw=at(row,c.weeklyHours);
+          const birthDate=birthRaw?dateIso(row[c.birthDate]):'',employmentStart=startRaw?dateIso(row[c.employmentStart]):'';
+          const hourlyRate=rateRaw?numberValue(row[c.hourlyRate]):null,vacationDays=vacationRaw?numberValue(row[c.vacationDays]):null,weeklyHours=weeklyRaw?numberValue(row[c.weeklyHours]):null;
+          const item={
+            sheet,row:i+1,employee_no:at(row,c.employeeNo),display_name:nameOf(row),email:at(row,c.email).toLowerCase(),
+            phone:at(row,c.phone),bewacher_id:at(row,c.bewacherId),qualification_level:normalizeQualification(at(row,c.qualification)),
+            hourly_rate_cents:hourlyRate==null?null:Math.round(hourlyRate*100),vacation_days_annual:vacationDays,
+            private:{
+              birth_date:birthDate||null,employment_start_date:employmentStart||null,street:at(row,c.street)||null,
+              postal_code:at(row,c.postalCode)||null,city:at(row,c.city)||null,
+              extra_fields:weeklyHours==null?{}:{weekly_hours:weeklyHours}
+            }
+          };
           if(!item.display_name){problems.push({sheet,row:i+1,reason:'Name fehlt.'});continue}
           if(!item.employee_no&&!item.email){problems.push({sheet,row:i+1,reason:'Personalnummer oder E-Mail fehlt.'});continue}
           if(item.email&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(item.email)){problems.push({sheet,row:i+1,reason:'E-Mail ist ungültig.'});continue}
+          if(birthRaw&&!birthDate){problems.push({sheet,row:i+1,reason:'Geburtsdatum ist ungültig.'});continue}
+          if(startRaw&&!employmentStart){problems.push({sheet,row:i+1,reason:'Eintrittsdatum ist ungültig.'});continue}
+          if(rateRaw&&hourlyRate==null){problems.push({sheet,row:i+1,reason:'Stundenlohn ist ungültig.'});continue}
+          if(vacationRaw&&vacationDays==null){problems.push({sheet,row:i+1,reason:'Urlaubstage sind ungültig.'});continue}
+          if(weeklyRaw&&weeklyHours==null){problems.push({sheet,row:i+1,reason:'Wochenstunden sind ungültig.'});continue}
           rows.push(item);
         }continue;
       }
@@ -145,7 +181,8 @@ const AONE_IMPORT=(()=>{
       const match=matches[0];if(match?.status==='inactive'){issue(row,'Mitarbeiter ist deaktiviert und wird nicht automatisch reaktiviert.');continue}
       if(match?.user_id&&row.email&&keyMail(match.email)!==keyMail(row.email)){issue(row,'E-Mail eines verbundenen Benutzerkontos darf nicht per Import geändert werden.');continue}
       const identity=match?.id||(row.employee_no?'no:'+keyNo(row.employee_no):'mail:'+keyMail(row.email));if(seen.has(identity)){issue(row,'Mitarbeiter kommt mehrfach in der Datei vor.');continue}seen.add(identity);
-      const changed=!match||['employee_no','display_name','email','phone','qualification_level'].some(k=>clean(match[k])!==clean(row[k]));
+      const privateValues=row.private?Object.entries(row.private).filter(([k])=>k!=='extra_fields').some(([,v])=>clean(v)!=='')||Object.keys(row.private.extra_fields||{}).length>0:false;
+      const changed=!match||privateValues||['employee_no','display_name','email','phone','bewacher_id','qualification_level','hourly_rate_cents','vacation_days_annual'].some(k=>clean(match[k])!==clean(row[k]));
       if(!changed){skipped++;continue}accepted.push({...row,existing_id:match?.id||null});if(match)updated++;else created++;
     }
     return {accepted,issues,created,updated,skipped,total:rows.length};

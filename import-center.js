@@ -4,10 +4,12 @@
   const state={ctx:null,user:null,file:null,buffer:null,book:null,parsed:null,plan:null,sha:'',mapping:{},batchId:null,credentials:[]};
   const labels={
     employeeNo:'Personalnummer',displayName:'Name',email:'E-Mail',phone:'Telefon',qualification:'Qualifikation',
+    bewacherId:'Bewacher-ID',birthDate:'Geburtsdatum',employmentStart:'Eintrittsdatum',street:'Straße/Adresse',
+    postalCode:'PLZ',city:'Ort',hourlyRate:'Stundenlohn',vacationDays:'Urlaubstage',weeklyHours:'Wochenstunden',
     siteName:'Objekt',date:'Datum',start:'Beginn',end:'Ende',title:'Tätigkeit'
   };
   const fields=kind==='employees'
-    ?['employeeNo','displayName','email','phone','qualification']
+    ?['employeeNo','displayName','email','phone','qualification','bewacherId','employmentStart','birthDate','street','postalCode','city','hourlyRate','vacationDays','weeklyHours']
     :['employeeNo','displayName','email','siteName','date','start','end','title'];
   const esc=v=>AONE.esc(v??'');
   const q=s=>document.querySelector(s);
@@ -97,7 +99,7 @@
     if(!state.parsed)return;status('Zuordnungen und Konflikte werden geprüft …');
     try{
       if(kind==='employees'){
-        const employees=await AONE.tableAll('guard_employees',`select=id,employee_no,display_name,email,phone,qualification_level,status,user_id&org_id=eq.${encodeURIComponent(state.ctx.org_id)}`);
+        const employees=await AONE.tableAll('guard_employees',`select=id,employee_no,display_name,email,phone,bewacher_id,qualification_level,status,user_id,hourly_rate_cents,vacation_days_annual&org_id=eq.${encodeURIComponent(state.ctx.org_id)}`);
         state.plan=AONE_IMPORT.planEmployees(state.parsed.rows,employees);
       }else{
         const [employees,sites,orgRows]=await Promise.all([
@@ -126,7 +128,7 @@
     q('#export-import-errors').hidden=!issues.length;
     const rows=(p.accepted||[]).slice(0,50);
     if(kind==='employees'){
-      q('#import-table').innerHTML='<thead><tr><th>Aktion</th><th>Personalnr.</th><th>Name</th><th>E-Mail</th><th>Telefon</th><th>Qualifikation</th></tr></thead><tbody>'+rows.map(r=>`<tr><td>${r.existing_id?'Aktualisieren':'Neu'}</td><td>${esc(r.employee_no)}</td><td>${esc(r.display_name)}</td><td>${esc(r.email)}</td><td>${esc(r.phone)}</td><td>${esc(r.qualification_level)}</td></tr>`).join('')+'</tbody>';
+      q('#import-table').innerHTML='<thead><tr><th>Aktion</th><th>Personalnr.</th><th>Name</th><th>E-Mail</th><th>Telefon</th><th>Qualifikation</th><th>Eintritt</th><th>Wochenstunden</th></tr></thead><tbody>'+rows.map(r=>`<tr><td>${r.existing_id?'Aktualisieren':'Neu'}</td><td>${esc(r.employee_no)}</td><td>${esc(r.display_name)}</td><td>${esc(r.email)}</td><td>${esc(r.phone)}</td><td>${esc(r.qualification_level)}</td><td>${esc(r.private?.employment_start_date||'')}</td><td>${esc(r.private?.extra_fields?.weekly_hours??'')}</td></tr>`).join('')+'</tbody>';
     }else{
       q('#import-table').innerHTML='<thead><tr><th>Mitarbeiter</th><th>Objekt</th><th>Beginn</th><th>Ende</th><th>Tätigkeit</th></tr></thead><tbody>'+rows.map(r=>`<tr><td>${esc(r.display_name||r.employee_no||r.email)}</td><td>${esc(r.site_name)}</td><td>${esc(AONE.dt(r.starts_at))}</td><td>${esc(AONE.dt(r.ends_at))}</td><td>${esc(r.title)}</td></tr>`).join('')+'</tbody>';
     }
@@ -140,7 +142,12 @@
     finally{btn.disabled=false}
   }
   async function applyEmployees(){
-    const rows=state.plan.accepted.map(r=>({row_no:r.row,display_name:r.display_name,employee_no:r.employee_no||null,email:r.email||null,phone:r.phone||null,qualification_level:r.qualification_level||'none',status:'active'}));
+    const rows=state.plan.accepted.map(r=>({
+      row_no:r.row,display_name:r.display_name,employee_no:r.employee_no||null,email:r.email||null,phone:r.phone||null,
+      bewacher_id:r.bewacher_id||null,qualification_level:r.qualification_level||'none',
+      hourly_rate_cents:r.hourly_rate_cents??null,vacation_days_annual:r.vacation_days_annual??null,
+      private:r.private||null,status:'active'
+    }));
     let created=0,updated=0,accounts=0,failed=0;const errors=[];
     status('Mitarbeiter werden importiert …');
     for(const part of chunks(rows,50)){
