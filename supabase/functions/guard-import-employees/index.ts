@@ -14,7 +14,7 @@ function dateOnly(v:string){if(!v)return null;const m=v.match(/^(\d{1,2})[.\/-](
 function qualification(v:string){const x=norm(v);if(x.includes("sachkund"))return "sachkunde";if(x.includes("unterrichtung"))return "unterrichtung";return "none";}
 function status(v:string){const x=norm(v);if(["inaktiv","inactive","ausgeschieden","beendet"].includes(x))return "inactive";return "active";}
 function makePassword(){const alpha="ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@$%";const b=crypto.getRandomValues(new Uint8Array(18));let s="A1!a";for(const x of b)s+=alpha[x%alpha.length];return s;}
-async function sha256(bytes:Uint8Array){const h=await crypto.subtle.digest("SHA-256",bytes);return [...new Uint8Array(h)].map(x=>x.toString(16).padStart(2,"0")).join("");}
+async function sha256(bytes:Uint8Array){const copy=new Uint8Array(new ArrayBuffer(bytes.byteLength));copy.set(bytes);const h=await crypto.subtle.digest("SHA-256",copy);return [...new Uint8Array(h)].map(x=>x.toString(16).padStart(2,"0")).join("");}
 function normalizeRow(row:Record<string,unknown>,index:number){
   const first=pick(row,["Vorname","First Name","Firstname"]), last=pick(row,["Nachname","Familienname","Surname","Last Name","Lastname"]), full=pick(row,["Name","Vollständiger Name","Mitarbeiter","Mitarbeitername"]);
   const display_name=clean(full||[first,last].filter(Boolean).join(" "));
