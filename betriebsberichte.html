@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#0b1016">
+  <meta name="robots" content="noindex,nofollow">
+  <title>Betriebsberichte · A ONE Guard</title>
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" type="image/svg+xml" href="./assets/aone-mark.svg">
+  <link rel="stylesheet" href="./styles.css">
+  <style>
+    .report-shell{max-width:1360px;margin:0 auto;padding:18px}
+    .report-form{display:grid;grid-template-columns:repeat(5,minmax(140px,1fr));gap:12px;align-items:end}
+    .report-form label{display:grid;gap:6px;font-weight:700}
+    .report-actions{display:flex;gap:10px;flex-wrap:wrap;margin:16px 0}
+    .report-summary{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+    .report-summary span{padding:11px 14px;background:#14202c;border:1px solid var(--line);border-radius:12px}
+    .report-table{overflow:auto;max-height:70vh}
+    .report-table table{width:100%;border-collapse:collapse;font-size:14px}
+    .report-table th,.report-table td{padding:12px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
+    .report-table th{position:sticky;top:0;background:#101823;z-index:2}
+    .report-table td.notes{min-width:240px;max-width:480px;white-space:pre-wrap;overflow-wrap:anywhere}
+    .report-note{margin:15px 0;font-size:13px;color:var(--muted)}
+    .report-error{padding:14px;border:1px solid #8d3642;color:#ffd8dc;border-radius:12px;margin:14px 0}
+    @media(max-width:900px){.report-form{grid-template-columns:repeat(2,minmax(0,1fr))}}
+    @media(max-width:540px){.report-form{grid-template-columns:1fr}.report-shell{padding:12px}}
+  </style>
+</head>
+<body>
+  <div class="report-shell">
+    <header class="topbar">
+      <a class="brand" href="./admin.html"><img class="brand-mark" src="./assets/aone-mark.svg" alt="A ONE">
+        <div><b>A ONE Guard</b><span id="org-name">Betriebsberichte</span></div></a>
+      <div class="top-actions">
+        <a class="btn small" href="./security-ops.html">Security Operations</a>
+        <a class="btn small" href="./admin.html">Command Center</a>
+        <button class="btn small" id="logout">Abmelden</button>
+      </div>
+    </header>
+    <section class="card">
+      <span class="kicker">OPERATIVE AUSWERTUNG</span>
+      <h1>Wachbuch und Kontrollberichte</h1>
+      <p>Revisionsorientierte Zeitraumberichte mit objektbezogenen Filtern. Export und Ansicht verwenden dieselbe vollständige Abfrage.</p>
+      <form class="report-form" id="report-form">
+        <label>Berichtsart
+          <select class="select" id="kind"><option value="watchbook">Wachbuch</option><option value="patrol">Wächterkontrollsystem</option></select>
+        </label>
+        <label>Von<input class="input" type="date" id="from" required></label>
+        <label>Bis einschließlich<input class="input" type="date" id="through" required></label>
+        <label>Objekt<select class="select" id="site"><option value="">Alle berechtigten Objekte</option></select></label>
+        <button class="btn primary" type="submit" id="load">Bericht laden</button>
+      </form>
+      <div class="report-actions">
+        <button class="btn" type="button" id="export" disabled>CSV exportieren</button>
+        <button class="btn" type="button" id="print" disabled>Druckansicht</button>
+      </div>
+      <div id="error" class="report-error" role="alert" hidden></div>
+      <p id="report-state" class="muted" role="status">Bitte Bericht laden.</p>
+    </section>
+    <section class="card" style="margin-top:14px">
+      <div id="summary" class="report-summary"></div>
+      <div id="results" class="report-table" aria-live="polite"></div>
+      <p class="report-note" id="note"></p>
+    </section>
+  </div>
+  <script src="./core.js"></script>
+  <script src="./betriebsberichte-core.js"></script>
+  <script src="./betriebsberichte.js"></script>
+  <script src="./register-sw.js"></script>
+</body>
+</html>
