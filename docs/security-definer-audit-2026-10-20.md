@@ -12,7 +12,7 @@
   1. `guard_my_month_summary`: Eine deaktivierte Mitgliedschaft bei weiterhin aktivem Mitarbeiterprofil erlaubte den Abruf des synthetischen Stundensatzes.
   2. `guard_create_organization`: Ein nur deaktiviertes Mitgliedskonto konnte eine neue Organisation erstellen, obwohl `guard_ensure_organization` die Sperre explizit durchsetzt.
   3. `guard_finish_attempt`: Ein deaktiviertes Mitglied konnte einen laufenden Lehrgangsversuch abschließen.
-- Der **gezielte Fix** in `supabase/migrations/20261020194500_guard_suspended_account_rpc_security.sql` ergänzt prüfbare aktive Mitgliedschaft ohne die bestehenden öffentlichen Funktionssignaturen zu ändern.
+- Der **gezielte Fix** in `supabase/migrations/20261020173722_guard_suspended_account_rpc_security.sql` ergänzt prüfbare aktive Mitgliedschaft ohne die bestehenden öffentlichen Funktionssignaturen zu ändern.
 - **7/7 transaktionale SQL-Regressionstests** der Änderungen auf aktueller Datenbank erfolgreich, komplette Migration und synthetische Nutzer mit `ROLLBACK` zurückgenommen.
 - Die übrigen **56 Funktionen sind nicht als sicher freigegeben**. Die nachfolgende Inventarliste ist ein erster statischer Scan, kein Penetrationstest.
 
@@ -93,7 +93,7 @@ Die Spalte „Auth-Signal“ bezeichnet eine Textmustererkennung, **keine belegt
 ## Nachweise & Grenzen
 
 - Tests: [Suspended account RPC regression](../tests/suspended-account-rpc-security.sql)
-- Migration: [Härtung](../supabase/migrations/20261020194500_guard_suspended_account_rpc_security.sql)
+- Migration: [Härtung](../supabase/migrations/20261020173722_guard_suspended_account_rpc_security.sql)
 - [Supabase Advisor Regel 0029](https://supabase.com/docs/guides/observability/advisors?queryGroups=lint&lint=0029_authenticated_security_definer_function_executable)
 - [Issue #18](https://github.com/BenjaminAfradi-crypto/A-ONE-Guard/issues/18)
 
