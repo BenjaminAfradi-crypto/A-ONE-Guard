@@ -30,7 +30,7 @@ begin
   from auth.users u where u.id = v_uid;
   return v_org;
 end;
-$function$
+$function$;
 
 CREATE OR REPLACE FUNCTION public.guard_my_month_summary(p_month date DEFAULT CURRENT_DATE)
  RETURNS jsonb
@@ -61,5 +61,5 @@ begin
   select coalesce(sum((l.ends_on-l.starts_on)+1),0) into v_vac_used from public.guard_leave_requests l where l.employee_id=v_emp and l.kind='vacation' and l.status='approved' and extract(year from l.starts_on)=extract(year from p_month);
   return jsonb_build_object('worked_minutes',round(v_net),'break_minutes',round(v_break),'gross_estimate_cents',v_gross,'hourly_rate_cents',v_rate,'vacation_days_annual',v_vac,'approved_vacation_calendar_days',v_vac_used);
 end;
-$function$
+$function$;
 
