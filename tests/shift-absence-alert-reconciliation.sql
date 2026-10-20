@@ -13,7 +13,7 @@ declare
   s5 uuid:=gen_random_uuid();
   l1 uuid:=gen_random_uuid(); l2 uuid:=gen_random_uuid();
   l3 uuid:=gen_random_uuid(); l4 uuid:=gen_random_uuid();
-  n int; st text; site uuid; description text; ack uuid;
+  n int; st text; site uuid; v_desc text; ack uuid;
 begin
   insert into auth.users(id,email) values(u,'cancel-shift-'||u||'@example.invalid');
   insert into public.guard_organizations(id,name,slug)
@@ -33,9 +33,9 @@ begin
          (s2,o,b,e,'Planned day 2','2031-03-20 08:00+01','2031-03-20 16:00+01','confirmed');
   insert into public.guard_leave_requests(id,org_id,employee_id,kind,starts_on,ends_on,status)
   values(l1,o,e,'sick','2031-03-18','2031-03-20','pending');
-  select count(*),max(description) into n,description from public.guard_escalations
+  select count(*),max(description) into n,v_desc from public.guard_escalations
   where source_type='absence' and source_id=l1 and status='open';
-  if n<>1 or description not like '%2 geplante Dienste%' then
+  if n<>1 or v_desc not like '%2 geplante Dienste%' then
     raise exception 'initial two-shift alarm absent'; end if;
 
   update public.guard_escalations set status='acknowledged',acknowledged_by=u,
@@ -43,7 +43,7 @@ begin
   update public.guard_shifts set status='canceled' where id=s1;
 
   select count(*),max(status),max(site_id),max(description),max(acknowledged_by)
-    into n,st,site,description,ack from public.guard_escalations
+    into n,st,site,v_desc,ack from public.guard_escalations
    where source_type='absence' and source_id=l1 and status<>'resolved';
   if n<>1 or st<>'acknowledged' or site<>b or ack<>u
      or description not like '%1 geplante Dienste%' then
