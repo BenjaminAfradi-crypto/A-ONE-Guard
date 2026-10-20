@@ -49,7 +49,7 @@ begin
    where source_type='absence' and source_id=l1 and status<>'resolved'
    limit 1;
   if n<>1 or st<>'acknowledged' or site<>b or ack<>u
-     or description not like '%1 geplante Dienste%' then
+     or v_desc not like '%1 geplante Dienste%' then
     raise exception 'cancellation failed to preserve remaining risk and acknowledgement';
   end if;
 
