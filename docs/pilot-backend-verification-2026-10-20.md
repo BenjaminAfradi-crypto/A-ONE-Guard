@@ -30,7 +30,7 @@ Die echte A-One-Supabase-PostgreSQL-Datenbank wurde am 20.10.2026 mit **syntheti
 2. End-to-End auf echten iOS-/Android-Geräten mit NFC-Tags, offline, erneuter Anmeldung und unterbrochener Netzwerkverbindung.
 3. Jede privilegierte RPC-Funktion: Der Security Advisor meldete **59 WARN** zu authentifiziert ausführbaren `SECURITY DEFINER`-Funktionen. Das ist eine Prüfpriorität, nicht der Beweis, dass alle 59 gefährlich sind.
 4. **1 WARN** zur fehlenden Passwortprüfung gegen kompromittierte Passwörter. **2 INFO** zu Tabellen mit aktivem RLS ohne direkte Policies (`guard_private.nfc_requests`, `public.guard_document_counters`), die gezielt über Funktionen angesprochen werden.
-5. Änderungen **nach** Dienstfreigabe, etwa neu genehmigte Abwesenheit: Der aktuelle `guard_leave_shift_escalation`-Trigger erzeugt für genehmigte Abwesenheiten Eskalationen. Sein Verhalten bei neu erfassten **offenen Krankmeldungen** ist gesondert zu prüfen.
+5. **Bestätigte Lücke bei offenen Krankmeldungen:** Ein zusätzliches Transaktionstest-Szenario (bereits bestätigte Schicht, danach Krankmeldung mit `status='pending'`) erzeugte **0** Besetzungseskalationen; bei anschließender Genehmigung derselben Abwesenheit wurde **1** Eskalation angelegt. Ursache: `guard_private.leave_shift_escalation()` reagiert aktuell nur auf `status='approved'`. Die synthetischen Einträge wurden zurückgerollt. Ein gesonderter, getesteter Backend-Fix ist notwendig.
 6. Noch keine externe Sicherheitsprüfung, vollständige Datenschutzabnahme oder tatsächliche Pilotfreigabe.
 
 ## Hinweise
