@@ -106,3 +106,47 @@ create trigger guard_leave_shift_escalation
 after insert or update of status,kind,starts_on,ends_on
 on public.guard_leave_requests
 for each row execute function guard_private.leave_shift_escalation();
+
+
+-- Backfill only current/upcoming pending-sickness risks without resurrecting
+-- an alarm already resolved by an operator. Historical records are skipped.
+insert into public.guard_escalations(
+  org_id,site_id,source_type,source_id,event_type,severity,
+  title,description,status,due_at,created_by
+)
+select l.org_id, s_first.site_id, 'absence',l.id,'staffing','high',
+       'Besetzungsrisiko: offene Krankmeldung',
+       coalesce(e.display_name,'Mitarbeiter')
+       ||' hat eine offene Krankmeldung für '
+       ||(select count(*) from public.guard_shifts sx
+          where sx.org_id=l.org_id and sx.employee_id=l.employee_id
+            and sx.status<>'canceled'
+            and daterange(l.starts_on,l.ends_on,'[]')
+              && daterange(
+                (sx.starts_at at time zone 'Europe/Berlin')::date,
+                ((sx.ends_at-interval '1 second') at time zone 'Europe/Berlin')::date,
+                '[]'))::text
+       ||' geplante Dienste. Erster Dienst bei '
+       ||coalesce(s_first.site_name,'Objekt')||'.',
+       'open',s_first.starts_at,null
+from public.guard_leave_requests l
+join public.guard_employees e on e.id=l.employee_id and e.org_id=l.org_id
+join lateral (
+  select s.site_id,s.starts_at,site.name as site_name
+  from public.guard_shifts s
+  join public.guard_sites site on site.id=s.site_id and site.org_id=l.org_id
+  where s.org_id=l.org_id and s.employee_id=l.employee_id
+    and s.status<>'canceled'
+    and s.ends_at >= now()-interval '1 day'
+    and daterange(l.starts_on,l.ends_on,'[]')
+      && daterange(
+        (s.starts_at at time zone 'Europe/Berlin')::date,
+        ((s.ends_at-interval '1 second') at time zone 'Europe/Berlin')::date,
+        '[]')
+  order by s.starts_at,s.id
+  limit 1
+) s_first on true
+where l.kind='sick' and l.status='pending'
+  and l.ends_on >= ((now() at time zone 'Europe/Berlin')::date - 1)
+on conflict (org_id,source_type,source_id)
+where source_id is not null do nothing;
