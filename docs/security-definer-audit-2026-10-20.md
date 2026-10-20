@@ -98,3 +98,13 @@ Die Spalte „Auth-Signal“ bezeichnet eine Textmustererkennung, **keine belegt
 - [Issue #18](https://github.com/BenjaminAfradi-crypto/A-ONE-Guard/issues/18)
 
 Bis zur formellen Freigabe bleibt die Pilotbewertung eingeschränkt. Dieser Bericht darf nicht als Nachweis vollständiger Sicherheit verstanden werden.
+
+## Nachtrag: gemeinsamer Mitarbeiter-Identitätshelfer
+
+Beim Prüfen der übrigen 56 RPCs wurde eine weitere Berechtigungslücke bestätigt: `guard_private.employee_id_for(org,user)` gab eine Mitarbeiter-ID zurück, auch wenn deren Firmenmitgliedschaft deaktiviert war. Der produktive `guard_request_shift_swap` ließ so ein gesperrtes Konto im echten `authenticated`-Kontext einen Schichttausch für seine Firma erstellen (synthetische Daten, `ROLLBACK`).
+
+**13 öffentlich aufrufbare, privilegierte Funktionen** verweisen direkt auf diesen Helfer: `guard_cancel_shift_swap`, `guard_clock_nfc`, `guard_clock_nfc_auto`, `guard_complete_task`, `guard_lone_worker_checkin`, `guard_lone_worker_close`, `guard_lone_worker_start`, `guard_request_shift_swap`, `guard_request_time_correction`, `guard_respond_shift_swap`, `guard_submit_form`, `guard_trip_end`, `guard_trip_start`. **Das ist ein gemeinsames Risikomuster, nicht der Nachweis 13 einzelner ausnutzbarer Fehler.**
+
+Die Migration `supabase/migrations/20261020195500_guard_employee_id_for_membership_hardening.sql` erzwingt nun eine aktive Mitgliedschaft **in genau derselben Organisation** und einen aktiven Mitarbeiterstatus. Sie erhält die Signatur und bestehenden Datenbankrechte. `tests/employee-id-active-membership.sql` validiert neun Szenarien inkl. Multi-Organisation, Mitarbeiterdeaktivierung, Schichttausch-Sperre und Wiederfreigabe.
+
+Die Migration wurde zusammen mit **9 neuen + 7 vorherigen RPC- + 43 RLS- und vollständigen Backend-Regressionen** transaktional auf PostgreSQL getestet und wieder zurückgerollt. Dies bestätigt die getesteten Pfade, nicht automatisch alle Aufrufer des Helfers.
