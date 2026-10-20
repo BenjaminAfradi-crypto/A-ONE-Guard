@@ -99,3 +99,14 @@ Migration: `supabase/migrations/20261020164612_guard_pending_sick_staffing_escal
 Die Migration und die 12 Tests wurden am 20.10.2026 zusammen innerhalb **einer einzigen echten PostgreSQL-Transaktion** ausgeführt, bevor sie zurückgerollt wurden. Auch die einmalige Nachmeldung bereits existierender offener Krankmeldungen wurde mit einer vor dem Triggerwechsel erzeugten synthetischen Abwesenheit geprüft.
 
 **Achtung:** Die GitHub-CI führt diese SQL-Suite absichtlich nicht mit Produktionsdatenbankzugang aus. SQL-Tests nur im freigegebenen Entwicklungs-/Stagingkontext durchführen. Der Nachweis der Transaktion beweist nicht, dass die Migration in Produktion bereits ausgerollt wurde; anschließend Migrationshistorie und Alarmzustellung getrennt prüfen.
+
+
+## Dienststornierung und Abwesenheitseskalation – Issue #23
+
+Migration: `supabase/migrations/20261020174500_guard_shift_absence_alert_reconciliation.sql`.
+
+Die private Funktion `guard_private.reconcile_shift_absence_alert()` wird durch einen Trigger auf `guard_shifts` nach relevanten Updates oder DELETE aufgerufen. Die Routine aktualisiert **bereits aktive** Besetzungswarnungen für den ursprünglich eingeteilten Mitarbeiter. Sie reduziert die Anzahl betroffener Dienste, aktualisiert erstes Objekt/Fälligkeit und löst einen Alarm automatisch auf, wenn kein betroffener Dienst mehr existiert. Status `acknowledged` und `acknowledged_by` bleiben bestehen, solange weitere Dienste betroffen sind. Manuell erledigte Alarme werden durch Dienstplanänderungen nicht wieder geöffnet.
+
+Der SQL-Regressionslauf `tests/shift-absence-alert-reconciliation.sql` umfasst Stornierung bei mehreren Diensten, Stornierung des letzten Dienstes, Datumsverschiebung, Personalaustausch, den vorhandenen serverseitigen Schutz vor Umbuchung während genehmigter Abwesenheit, DELETE und die Eindeutigkeit des Alerts. Er wurde am 20.10.2026 gemeinsam mit der Migration innerhalb **einer** Transaktion auf der echten A-One-Datenbank ausgeführt: **PASS, 7 Szenarien**; `ROLLBACK` hat Funktionsänderungen und Testdaten rückgängig gemacht.
+
+Die Datenbankmutation erfolgt nicht in GitHub-CI. Diese verifiziert weiterhin Syntax, Unit-/Browser-Regressionen. Eine dauerhafte Installation ist erst mit explizitem Migrationsaufruf und erfolgreichem Post-Deploy-SQL-Test nachgewiesen.
