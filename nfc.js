@@ -2,19 +2,31 @@
   const qs=s=>document.querySelector(s), state=qs('#state'), headline=qs('#headline'), detail=qs('#detail'), subtitle=qs('#subtitle'), login=qs('#login-btn'), retry=qs('#retry-btn');
   const setState=(title,text,kind='')=>{headline.textContent=title;detail.textContent=text;state.className='nfc-state'+(kind?' '+kind:'')};
   const read=(storage,key)=>{try{return JSON.parse(storage.getItem(key)||'null')}catch{return null}};
-  const queryToken=(new URLSearchParams(location.search).get('t')||'').trim();
+  const scanUrl=new URL(location.href);
+  const queryToken=(scanUrl.searchParams.get('t')||'').trim();
   const pending=read(localStorage,'aone_nfc_pending');
   const last=read(sessionStorage,'aone_nfc_last');
   const navigation=performance.getEntriesByType('navigation')[0]?.type;
-  const validPending=pending?.token&&Date.now()-pending.created_at<10*60*1000;
-  const replay=['reload','back_forward'].includes(navigation)&&last?.token&&(!queryToken||last.token===queryToken);
+  const now=Date.now();
+  const fresh=x=>typeof x?.token==='string'&&x.token.length>0&&Number.isFinite(x.created_at)&&x.created_at<=now&&now-x.created_at<10*60*1000;
+  const validPending=fresh(pending);
+  const replay=['reload','back_forward'].includes(navigation)&&fresh(last)&&(!queryToken||last.token===queryToken);
   let request=replay?last:validPending&&(!queryToken||pending.token===queryToken)?pending:null;
   if(!request&&queryToken)request={token:queryToken,request_id:crypto.randomUUID(),created_at:Date.now()};
-  if(!request){localStorage.removeItem('aone_nfc_pending');subtitle.textContent='Kein gültiger NFC-Link';setState('Tag erneut scannen','Der NFC-Link fehlt oder die Anmeldung hat zu lange gedauert.','err');return}
+  if(!request){
+    try{localStorage.removeItem('aone_nfc_pending');sessionStorage.removeItem('aone_nfc_last')}catch{}
+    subtitle.textContent='Kein gültiger NFC-Link';setState('Tag erneut scannen','Der NFC-Link fehlt oder die Anmeldung hat zu lange gedauert.','err');return
+  }
   request.request_id ||= crypto.randomUUID();
   // Persist BEFORE sending. If storage fails, do not risk an unrepeatable booking.
   try{localStorage.setItem('aone_nfc_pending',JSON.stringify(request));sessionStorage.setItem('aone_nfc_last',JSON.stringify(request))}
   catch{setState('Speicher nicht verfügbar','Bitte den Browserspeicher aktivieren und erneut scannen.','err');return}
+  // The scan token is a credential for this booking. Keep it out of address-bar
+  // history and subsequent referrers after the idempotent request is persisted.
+  if(queryToken){
+    scanUrl.searchParams.delete('t');
+    try{history.replaceState(history.state,'',scanUrl.pathname+scanUrl.search+scanUrl.hash)}catch{}
+  }
   const session=await AONE.session().catch(()=>null);
   if(!session){subtitle.textContent='Anmeldung erforderlich';setState('Bitte anmelden','Nach der Anmeldung wird die Zeiterfassung automatisch fortgesetzt.');login.style.display='inline-flex';setTimeout(()=>location.replace('./login.html'),900);return}
   if(session.user?.app_metadata?.must_change_password){sessionStorage.setItem('aone_after_password','./nfc.html');location.replace('./change-password.html');return}
