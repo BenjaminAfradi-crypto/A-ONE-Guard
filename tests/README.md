@@ -88,3 +88,14 @@ The combined audit-fix migration, membership-hardening migration and RLS matrix 
 `tests/rls-matrix.sql` now includes four additional checks for direct shift INSERT/UPDATE as `employee`, an authorized `dispatcher` INSERT, and a cross-tenant `outsider` INSERT. All **43 checks** passed using actual `authenticated` role and simulated JWT subjects in one rolled-back transaction on 20.10.2026.
 
 A successful integration test is not a concurrent stress test or an external API penetration test. See `docs/pilot-backend-verification-2026-10-20.md` for the evidence and open risks.
+
+
+## Offene Krankmeldung: Besetzungswarnung (20.10.2026)
+
+Migration: `supabase/migrations/20261020163745_guard_pending_sick_staffing_escalations.sql`.
+
+`tests/pending-sickness-escalation.sql` führt nach Anwendung der Migration 12 Regressionen mit synthetischen Benutzern und einer `BEGIN`/`ROLLBACK`-Transaktion aus: offene Krankmeldung, anschließende Genehmigung, Bestätigungserhalt, Verschiebung, Wiederaktivierung, Ablehnung, Urlaub, Wiederholung, Stornierung, mehrere betroffene Objekte, Aktualisierung der betroffenen Objekte und Statuswechsel.
+
+Die Migration und die 12 Tests wurden am 20.10.2026 zusammen innerhalb **einer einzigen echten PostgreSQL-Transaktion** ausgeführt, bevor sie zurückgerollt wurden. Auch die einmalige Nachmeldung bereits existierender offener Krankmeldungen wurde mit einer vor dem Triggerwechsel erzeugten synthetischen Abwesenheit geprüft.
+
+**Achtung:** Die GitHub-CI führt diese SQL-Suite absichtlich nicht mit Produktionsdatenbankzugang aus. SQL-Tests nur im freigegebenen Entwicklungs-/Stagingkontext durchführen. Der Nachweis der Transaktion beweist nicht, dass die Migration in Produktion bereits ausgerollt wurde; anschließend Migrationshistorie und Alarmzustellung getrennt prüfen.
