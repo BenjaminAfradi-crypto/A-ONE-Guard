@@ -118,3 +118,6 @@ Die Datenbankmutation erfolgt nicht in GitHub-CI. Diese verifiziert weiterhin Sy
 Die auf `guard_create_organization`, `guard_my_month_summary` und `guard_finish_attempt` beschränkte Migration wurde gemeinsam mit den Tests **nur testweise** auf das bestehende Schema angewendet (eine `BEGIN/ROLLBACK`-Transaktion): **7/7 PASS**. Eine solche Prüfung schreibt keine dauerhaften Funktionen oder Benutzer. Für den späteren Produktivrollout ist eine eigene Migrationsanwendung mit anschließender Live-Rückroll-Regression erforderlich.
 
 Die 59 statisch gesichteten und privilegierten RPCs sind im [Sicherheits-Audit](../docs/security-definer-audit-2026-10-20.md) inventarisiert. Das Erkennen von Auth-Signalen ist kein Sicherheitsnachweis für die übrigen Funktionen.
+
+
+**Produktivprüfung 20.10.2026:** Die Migration `20261020173722_guard_suspended_account_rpc_security` wurde über Supabase erfolgreich installiert. Die 7 neuen RPC-Regressionen, 43/43 RLS-Rollenchecks und der Backend-Integritätstest wurden anschließend mit vollständigem `ROLLBACK` erneut ausgeführt und bestanden.
