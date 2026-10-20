@@ -42,9 +42,12 @@ begin
        acknowledged_at=now() where source_id=l1;
   update public.guard_shifts set status='canceled' where id=s1;
 
-  select count(*),max(status),max(site_id),max(description),max(acknowledged_by)
-    into n,st,site,v_desc,ack from public.guard_escalations
+  select count(*) into n from public.guard_escalations
    where source_type='absence' and source_id=l1 and status<>'resolved';
+  select status,site_id,description,acknowledged_by
+    into st,site,v_desc,ack from public.guard_escalations
+   where source_type='absence' and source_id=l1 and status<>'resolved'
+   limit 1;
   if n<>1 or st<>'acknowledged' or site<>b or ack<>u
      or description not like '%1 geplante Dienste%' then
     raise exception 'cancellation failed to preserve remaining risk and acknowledgement';
