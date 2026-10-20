@@ -78,4 +78,13 @@ The write portion of the RLS matrix also verifies that authenticated clients hav
 
 This closes a concrete bypass found during the pilot review: with the previous broad `guard_members_manage` policy, an admin could directly PATCH an owner's membership row through PostgREST and bypass the protections in `guard_set_member_role`. Migration `20261006142000_guard_membership_mutation_rpc_only.sql` removes direct membership DML while preserving guarded RPC flows.
 
-The combined audit-fix migration, membership-hardening migration and RLS matrix were executed in one real Supabase transaction. All 29 read/write checks passed and the transaction was rolled back.
+The combined audit-fix migration, membership-hardening migration and RLS matrix were executed in one real Supabase transaction. The role matrix has since been expanded to 43 checks; the current live backend passed all 43 on 20.10.2026 and the test transaction was rolled back.
+
+
+## Pilot server-side regression extension (20.10.2026)
+
+`tests/backend-integrity.sql` now also tests the database's real shift trigger for approved vacation, pending sickness, missing/expired mandatory qualification, a renewed proof, and foreign-tenant object rejection. All six additional checks passed against the existing A One project on 20.10.2026. The SQL starts with `BEGIN` and ends with `ROLLBACK` and is intended for an approved management/test connection only; **do not run it automatically in public PR CI**.
+
+`tests/rls-matrix.sql` now includes four additional checks for direct shift INSERT/UPDATE as `employee`, an authorized `dispatcher` INSERT, and a cross-tenant `outsider` INSERT. All **43 checks** passed using actual `authenticated` role and simulated JWT subjects in one rolled-back transaction on 20.10.2026.
+
+A successful integration test is not a concurrent stress test or an external API penetration test. See `docs/pilot-backend-verification-2026-10-20.md` for the evidence and open risks.

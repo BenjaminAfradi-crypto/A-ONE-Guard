@@ -81,6 +81,32 @@ begin
   insert into rls_results values('employee','schedule_import_insert_rejected',case when rejected then 1 else 0 end,1);
 end $employee_import_write$;
 
+
+do $employee_shift_write$
+declare rejected boolean:=false; changed integer:=0;
+begin
+  begin
+    insert into public.guard_shifts(org_id,site_id,employee_id,title,starts_at,ends_at,status)
+    values('11111111-1111-4111-8111-111111111111',
+           'cccccccc-cccc-4ccc-8ccc-ccccccccccc1',
+           'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbb1',
+           'Not authorized employee write','2031-01-04 08:00Z','2031-01-04 16:00Z','planned');
+  exception when insufficient_privilege then rejected:=true;
+  end;
+  insert into rls_results values('employee','shift_direct_insert_denied',case when rejected then 1 else 0 end,1);
+
+  rejected:=false;
+  begin
+    update public.guard_shifts set title='Unapproved employee edit'
+    where title='RLS Shift' and org_id='11111111-1111-4111-8111-111111111111';
+    get diagnostics changed = row_count;
+    rejected:=(changed=0);
+  exception when insufficient_privilege then rejected:=true;
+  end;
+  insert into rls_results values('employee','shift_direct_update_denied',case when rejected then 1 else 0 end,1);
+end
+$employee_shift_write$;
+
 reset role;
 set local role authenticated;
 select set_config('request.jwt.claim.sub','aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa3',true);
@@ -99,6 +125,20 @@ begin
   end;
   insert into rls_results values('dispatcher','schedule_import_direct_insert_rejected',case when rejected then 1 else 0 end,1);
 end $dispatcher_import_write$;
+
+
+do $dispatcher_shift_write$
+declare shift_id uuid;
+begin
+  insert into public.guard_shifts(org_id,site_id,employee_id,title,starts_at,ends_at,status)
+  values('11111111-1111-4111-8111-111111111111',
+         'cccccccc-cccc-4ccc-8ccc-ccccccccccc1',
+         'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbb1',
+         'Dispatcher allowed shift','2031-01-04 08:00Z','2031-01-04 16:00Z','planned')
+  returning id into shift_id;
+  insert into rls_results values('dispatcher','shift_direct_insert_allowed',case when shift_id is not null then 1 else 0 end,1);
+end
+$dispatcher_shift_write$;
 
 reset role;
 set local role authenticated;
@@ -125,6 +165,22 @@ insert into rls_results select 'outsider','employee_a',count(*),0 from public.gu
 insert into rls_results select 'outsider','shift_a',count(*),0 from public.guard_shifts where org_id='11111111-1111-4111-8111-111111111111';
 insert into rls_results select 'outsider','documents_a',count(*),0 from public.guard_documents where org_id='11111111-1111-4111-8111-111111111111';
 insert into rls_results select 'outsider','schedule_import_batches_a',count(*),0 from public.guard_schedule_import_batches where org_id='11111111-1111-4111-8111-111111111111';
+
+
+do $outsider_shift_write$
+declare rejected boolean:=false;
+begin
+  begin
+    insert into public.guard_shifts(org_id,site_id,employee_id,title,starts_at,ends_at,status)
+    values('11111111-1111-4111-8111-111111111111',
+           'cccccccc-cccc-4ccc-8ccc-ccccccccccc1',
+           'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbb1',
+           'Outsider cross-tenant write','2031-01-06 08:00Z','2031-01-06 16:00Z','planned');
+  exception when insufficient_privilege then rejected:=true;
+  end;
+  insert into rls_results values('outsider','shift_cross_tenant_insert_denied',case when rejected then 1 else 0 end,1);
+end
+$outsider_shift_write$;
 
 reset role;
 insert into rls_results values(

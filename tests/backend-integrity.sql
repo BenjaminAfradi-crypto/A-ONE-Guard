@@ -104,7 +104,72 @@ begin
  if repeat_result->>'action'<>'out' or repeat_result->>'entry_id'<>first_result->>'entry_id' then raise exception 'FAIL new scan did not close original entry'; end if;
  rejected:=false;begin perform public.guard_clock_nfc_once('other-token',request_id,null);exception when others then rejected:=true;end;
  if not rejected then raise exception 'FAIL NFC request accepted changed payload'; end if;
+
+ -- End-to-end backend enforcement: absence and qualification checks must survive
+ -- direct SQL/API writes, rather than depending on the browser planner.
+ insert into public.guard_leave_requests(org_id,employee_id,kind,starts_on,ends_on,status)
+ values(a,e,'vacation','2030-02-10','2030-02-10','approved');
+ rejected:=false;
+ begin
+   insert into public.guard_shifts(org_id,site_id,employee_id,title,starts_at,ends_at)
+   values(a,site,e,'Approved leave should block','2030-02-10 08:00+01','2030-02-10 16:00+01');
+ exception when others then
+   if SQLERRM not like '%Abwesenheit%' then raise; end if;
+   rejected:=true;
+ end;
+ if not rejected then raise exception 'FAIL approved vacation allowed direct scheduling'; end if;
+
+ insert into public.guard_leave_requests(org_id,employee_id,kind,starts_on,ends_on,status)
+ values(a,e,'sick','2030-02-11','2030-02-11','pending');
+ rejected:=false;
+ begin
+   insert into public.guard_shifts(org_id,site_id,employee_id,title,starts_at,ends_at)
+   values(a,site,e,'Pending sickness should block','2030-02-11 08:00+01','2030-02-11 16:00+01');
+ exception when others then
+   if SQLERRM not like '%Abwesenheit%' then raise; end if;
+   rejected:=true;
+ end;
+ if not rejected then raise exception 'FAIL pending sickness allowed direct scheduling'; end if;
+
+ insert into public.guard_compliance_requirements(org_id,site_id,requirement_type,requirement_key,label,mandatory,active)
+ values(a,site,'qualification','first_aid','First Aid',true,true);
+ rejected:=false;
+ begin
+   insert into public.guard_shifts(org_id,site_id,employee_id,title,starts_at,ends_at)
+   values(a,site,e,'Missing certificate should block','2030-02-13 08:00+01','2030-02-13 16:00+01');
+ exception when others then
+   if SQLERRM not like '%Pflichtnachweis%' then raise; end if;
+   rejected:=true;
+ end;
+ if not rejected then raise exception 'FAIL missing mandatory certificate allowed'; end if;
+
+ insert into public.guard_qualifications(org_id,employee_id,kind,valid_from,valid_until,verified_at)
+ values(a,e,'first_aid','2029-01-01','2030-02-12',now());
+ rejected:=false;
+ begin
+   insert into public.guard_shifts(org_id,site_id,employee_id,title,starts_at,ends_at)
+   values(a,site,e,'Expired certificate should block','2030-02-13 08:00+01','2030-02-13 16:00+01');
+ exception when others then
+   if SQLERRM not like '%Pflichtnachweis%' then raise; end if;
+   rejected:=true;
+ end;
+ if not rejected then raise exception 'FAIL expired certificate allowed'; end if;
+ update public.guard_qualifications set valid_until='2030-12-31'
+ where org_id=a and employee_id=e and kind='first_aid';
+ insert into public.guard_shifts(org_id,site_id,employee_id,title,starts_at,ends_at)
+ values(a,site,e,'Valid certificate succeeds','2030-02-13 08:00+01','2030-02-13 16:00+01');
+
+ rejected:=false;
+ begin
+   insert into public.guard_shifts(org_id,site_id,employee_id,title,starts_at,ends_at)
+   values(a,foreign_site,e,'Cross-tenant shift','2030-02-15 08:00+01','2030-02-15 16:00+01');
+ exception when others then
+   if SQLERRM not like '%Firma%' then raise; end if;
+   rejected:=true;
+ end;
+ if not rejected then raise exception 'FAIL cross-tenant shift allowed'; end if;
+
  if exists(select 1 from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='public' and p.proname like 'guard_%' and has_function_privilege('anon',p.oid,'execute')) then raise exception 'FAIL anonymous RPC execute still allowed'; end if;
 end $test$;
-select 'PASS: overlap/rest integrity, atomic and reversible schedule imports, active-object and assignment guards, atomic employee access, tenant links, outsider denial, required fields, form snapshot, anonymous RPC grants and NFC retries' as result;
+select 'PASS: overlap/rest, schedule imports, active-object and assignment guards, approved leave and pending sickness, mandatory qualification validity, employee access, tenant isolation, outsider denial, forms, anonymous RPC grants and NFC retries' as result;
 rollback;
