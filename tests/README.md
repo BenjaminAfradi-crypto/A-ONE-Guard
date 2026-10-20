@@ -110,3 +110,11 @@ Die private Funktion `guard_private.reconcile_shift_absence_alert()` wird durch 
 Der SQL-Regressionslauf `tests/shift-absence-alert-reconciliation.sql` umfasst Stornierung bei mehreren Diensten, Stornierung des letzten Dienstes, Datumsverschiebung, Personalaustausch, den vorhandenen serverseitigen Schutz vor Umbuchung während genehmigter Abwesenheit, DELETE und die Eindeutigkeit des Alerts. Er wurde am 20.10.2026 gemeinsam mit der Migration innerhalb **einer** Transaktion auf der echten A-One-Datenbank ausgeführt: **PASS, 7 Szenarien**; `ROLLBACK` hat Funktionsänderungen und Testdaten rückgängig gemacht.
 
 Die Datenbankmutation erfolgt nicht in GitHub-CI. Diese verifiziert weiterhin Syntax, Unit-/Browser-Regressionen. Eine dauerhafte Installation ist erst mit explizitem Migrationsaufruf und erfolgreichem Post-Deploy-SQL-Test nachgewiesen.
+
+## Privileged RPC membership checks (20.10.2026)
+
+`tests/suspended-account-rpc-security.sql` enthält sieben transaktionale Sicherheitsprüfungen mit künstlichen `authenticated`-Benutzern: Zugriff auf Gehaltsübersicht trotz Kontosperre, Umgehen einer Sperre über die zweite Unternehmensanlage-Funktion, Schulungsabschluss trotz Sperre sowie erlaubte Nutzungen durch aktive Mitarbeiter und einen neuen Nutzer. Alle Fixtures werden zurückgerollt.
+
+Die auf `guard_create_organization`, `guard_my_month_summary` und `guard_finish_attempt` beschränkte Migration wurde gemeinsam mit den Tests **nur testweise** auf das bestehende Schema angewendet (eine `BEGIN/ROLLBACK`-Transaktion): **7/7 PASS**. Eine solche Prüfung schreibt keine dauerhaften Funktionen oder Benutzer. Für den späteren Produktivrollout ist eine eigene Migrationsanwendung mit anschließender Live-Rückroll-Regression erforderlich.
+
+Die 59 statisch gesichteten und privilegierten RPCs sind im [Sicherheits-Audit](../docs/security-definer-audit-2026-10-20.md) inventarisiert. Das Erkennen von Auth-Signalen ist kein Sicherheitsnachweis für die übrigen Funktionen.
