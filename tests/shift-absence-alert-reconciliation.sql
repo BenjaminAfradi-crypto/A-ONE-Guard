@@ -13,7 +13,7 @@ declare
   s5 uuid:=gen_random_uuid();
   l1 uuid:=gen_random_uuid(); l2 uuid:=gen_random_uuid();
   l3 uuid:=gen_random_uuid(); l4 uuid:=gen_random_uuid();
-  n int; st text; site uuid; v_desc text; ack uuid;
+  n int; st text; site uuid; v_desc text; ack uuid; rejected boolean;
 begin
   insert into auth.users(id,email) values(u,'cancel-shift-'||u||'@example.invalid');
   insert into public.guard_organizations(id,name,slug)
@@ -84,10 +84,20 @@ begin
   values(l4,o,e,'vacation','2031-06-10','2031-06-10','approved');
   update public.guard_escalations set status='acknowledged',acknowledged_by=u
   where source_id=l4;
-  update public.guard_shifts set site_id=b where id=s5;
-  select status,site_id into st,site from public.guard_escalations where source_id=l4;
-  if st<>'acknowledged' or site<>b then
-    raise exception 'site update changed acknowledgement or did not update site'; end if;
+  -- The existing shift-validation rule correctly blocks a site move
+  -- during approved absence; the reconciliation trigger must not bypass it.
+  rejected := false;
+  begin
+    update public.guard_shifts set site_id=b where id=s5;
+  exception when others then
+    if SQLERRM like '%Abwesenheit%' then rejected := true;
+    else raise; end if;
+  end;
+  if not rejected then raise exception 'site edit during approved leave unexpectedly accepted'; end if;
+  select status,site_id,acknowledged_by into st,site,ack
+  from public.guard_escalations where source_id=l4;
+  if st<>'acknowledged' or site<>a or ack<>u then
+    raise exception 'blocked site edit changed alert state'; end if;
 
   -- Delete has the same lifecycle effect as cancellation.
   delete from public.guard_shifts where id=s5;
