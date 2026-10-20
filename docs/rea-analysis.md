@@ -1,6 +1,6 @@
 # REA-Integration für A One Guard (read-only)
 
-Status: Vorbereitung zur Prüfung, **keine bestätigte Ausführung** und **keine Änderung der Live-Anwendung**.
+Status: Der statische REA-Workflow wurde am **20.10.2026 erfolgreich getestet**. Die produktive Anwendung und die Live-Datenbank wurden dabei nicht verändert. Siehe [dokumentiertes Ergebnis](rea-test-run-2026-10-20.md).
 
 ## Ziel und Architektur
 
@@ -17,7 +17,7 @@ Nach dem Review und Merge des Workflows auf `main`:
 3. Nach Abschluss unter **Artifacts** `rea-javascript-analysis` herunterladen.
 4. JSON-Evidenz prüfen. Fehler/Ungewissheiten im Bericht nicht als nachgewiesenes Laufzeitverhalten interpretieren.
 
-Der Workflow nutzt REA `6.7.0` und Node.js `24.11.0`; die Analyse liest den ausgecheckten Quellcode statisch. Drittanbieter-Pakete werden ausschließlich im temporären GitHub-Runner verwendet. Vor der Freigabe einer neuen REA-Version sind Versionshinweise, Herkunft und gegebenenfalls die Paketinhalte zu prüfen.
+Der Workflow nutzt REA `6.7.0` und Node.js `24.11.0`; die Analyse liest den ausgecheckten Quellcode statisch. Die Ausgabe liegt außerhalb des Quellverzeichnisses unter `$RUNNER_TEMP/rea-output`, damit der Analyzer nicht versehentlich die eigene noch unvollständige JSON-Ausgabe einliest. Drittanbieter-Pakete werden ausschließlich im temporären GitHub-Runner verwendet. Vor der Freigabe einer neuen REA-Version sind Versionshinweise, Herkunft und gegebenenfalls die Paketinhalte zu prüfen.
 
 ### Lokaler Entwickler-Agent
 
