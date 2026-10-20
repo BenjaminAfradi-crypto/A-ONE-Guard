@@ -121,3 +121,8 @@ Die 59 statisch gesichteten und privilegierten RPCs sind im [Sicherheits-Audit](
 
 
 **Produktivprüfung 20.10.2026:** Die Migration `20261020173722_guard_suspended_account_rpc_security` wurde über Supabase erfolgreich installiert. Die 7 neuen RPC-Regressionen, 43/43 RLS-Rollenchecks und der Backend-Integritätstest wurden anschließend mit vollständigem `ROLLBACK` erneut ausgeführt und bestanden.
+
+
+## Mitarbeiter-Zuordnung nur mit aktiver Mitgliedschaft
+
+`tests/employee-id-active-membership.sql` prüft neun Fälle: aktive Mitarbeiteridentität, gesperrten Mandanten bei gleichzeitig aktivem anderem Mandanten, Mitarbeiterdeaktivierung, fremde Benutzer, gesperrten und erlaubten Schichttausch sowie erfolgreiche Wiederfreigabe. Der Fix für `guard_private.employee_id_for()` wird vorher über die zugehörige Migration temporär in einer einzelnen zurückgerollten Datenbanktransaktion getestet. Der kombinierte Test mit den bisherigen RPC-/RLS-/Backend-Tests war erfolgreich; keine permanente Änderung durch diesen Vorabtest.
