@@ -92,7 +92,7 @@ A successful integration test is not a concurrent stress test or an external API
 
 ## Offene Krankmeldung: Besetzungswarnung (20.10.2026)
 
-Migration: `supabase/migrations/20261020163745_guard_pending_sick_staffing_escalations.sql`.
+Migration: `supabase/migrations/20261020164612_guard_pending_sick_staffing_escalations.sql`.
 
 `tests/pending-sickness-escalation.sql` führt nach Anwendung der Migration 12 Regressionen mit synthetischen Benutzern und einer `BEGIN`/`ROLLBACK`-Transaktion aus: offene Krankmeldung, anschließende Genehmigung, Bestätigungserhalt, Verschiebung, Wiederaktivierung, Ablehnung, Urlaub, Wiederholung, Stornierung, mehrere betroffene Objekte, Aktualisierung der betroffenen Objekte und Statuswechsel.
 
