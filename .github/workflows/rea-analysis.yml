@@ -1,0 +1,39 @@
+name: REA JavaScript Analysis
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  inspect:
+    name: Read-only JavaScript inspection
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout A One Guard
+        uses: actions/checkout@v4
+
+      - name: Set up supported Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24.11.0'
+
+      - name: Verify Linux process tools
+        run: command -v ps && node --version
+
+      - name: Inspect repository with REA (no app execution)
+        shell: bash
+        run: |
+          mkdir -p rea-output
+          npx --yes rea-agents@6.7.0 analyze-javascript-application "$GITHUB_WORKSPACE" --json > rea-output/javascript-analysis.json
+
+      - name: Upload analysis evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rea-javascript-analysis
+          path: rea-output/
+          if-no-files-found: warn
+          retention-days: 7
