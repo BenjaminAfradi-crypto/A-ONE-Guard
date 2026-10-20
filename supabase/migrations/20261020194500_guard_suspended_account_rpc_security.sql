@@ -1,6 +1,6 @@
 -- Security fix: prevent fully suspended accounts bypassing organization lockout
 -- and reading employee compensation through a SECURITY DEFINER RPC.
--- Both functions retain their existing public signatures and GRANTs.
+-- All three functions retain their existing public signatures and GRANTs.
 -- Tested with role authenticated and synthetic tenant users in BEGIN/ROLLBACK.
 
 CREATE OR REPLACE FUNCTION public.guard_create_organization(p_name text)
@@ -63,3 +63,25 @@ begin
 end;
 $function$;
 
+
+CREATE OR REPLACE FUNCTION public.guard_finish_attempt(p_attempt uuid)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO ''
+AS $function$
+declare v_uid uuid:=auth.uid(); v_total int; v_correct int; v_score numeric(5,2); v_pass int; v_passed boolean; v_xp int;
+begin
+  if not exists(select 1 from public.guard_training_attempts a join public.guard_employees e on e.id=a.employee_id where a.id=p_attempt and e.user_id=v_uid and a.completed_at is null
+    and e.org_id=a.org_id and e.status='active'
+    and exists(select 1 from public.guard_memberships m
+      where m.org_id=a.org_id and m.user_id=v_uid and m.active=true)) then raise exception 'attempt not available'; end if;
+  select count(*) into v_total from public.guard_question_prompts q join public.guard_training_attempts a on a.course_id=q.course_id where a.id=p_attempt;
+  select count(*) into v_correct from public.guard_training_answers where attempt_id=p_attempt and is_correct;
+  select c.pass_percent,c.points into v_pass,v_xp from public.guard_courses c join public.guard_training_attempts a on a.course_id=c.id where a.id=p_attempt;
+  v_score := case when v_total=0 then 0 else round((v_correct::numeric/v_total::numeric)*100,2) end;
+  v_passed := v_score >= v_pass;
+  update public.guard_training_attempts set completed_at=now(),score_percent=v_score,passed=v_passed,xp_earned=case when v_passed then v_xp else 0 end where id=p_attempt;
+  return jsonb_build_object('score_percent',v_score,'passed',v_passed,'xp_earned',case when v_passed then v_xp else 0 end);
+end;
+$function$;
