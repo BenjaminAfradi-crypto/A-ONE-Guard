@@ -171,5 +171,5 @@ begin
 
  if exists(select 1 from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='public' and p.proname like 'guard_%' and has_function_privilege('anon',p.oid,'execute')) then raise exception 'FAIL anonymous RPC execute still allowed'; end if;
 end $test$;
-select 'PASS: overlap/rest integrity, atomic and reversible schedule imports, active-object and assignment guards, atomic employee access, tenant links, outsider denial, required fields, form snapshot, anonymous RPC grants and NFC retries' as result;
+select 'PASS: overlap/rest, schedule imports, active-object and assignment guards, approved leave and pending sickness, mandatory qualification validity, employee access, tenant isolation, outsider denial, forms, anonymous RPC grants and NFC retries' as result;
 rollback;
