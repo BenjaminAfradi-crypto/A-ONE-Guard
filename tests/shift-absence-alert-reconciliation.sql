@@ -104,6 +104,12 @@ begin
   select status into st from public.guard_escalations where source_id=l4;
   if st<>'resolved' then raise exception 'delete did not close risk'; end if;
 
+  -- Trigger-only helper must not be callable directly from public API roles.
+  if has_function_privilege('anon','guard_private.reconcile_shift_absence_alert()','EXECUTE')
+    or has_function_privilege('authenticated','guard_private.reconcile_shift_absence_alert()','EXECUTE') then
+    raise exception 'private trigger helper has leaked EXECUTE privileges';
+  end if;
+
   -- No duplicate alerts from repeated updates.
   select count(*) into n from public.guard_escalations
   where source_type='absence' and source_id in (l1,l2,l3,l4);
