@@ -103,7 +103,7 @@ Die Migration und die 12 Tests wurden am 20.10.2026 zusammen innerhalb **einer e
 
 ## Dienststornierung und Abwesenheitseskalation – Issue #23
 
-Migration: `supabase/migrations/20261020174500_guard_shift_absence_alert_reconciliation.sql`.
+Migration: `supabase/migrations/20261020170125_guard_shift_absence_alert_reconciliation.sql`.
 
 Die private Funktion `guard_private.reconcile_shift_absence_alert()` wird durch einen Trigger auf `guard_shifts` nach relevanten Updates oder DELETE aufgerufen. Die Routine aktualisiert **bereits aktive** Besetzungswarnungen für den ursprünglich eingeteilten Mitarbeiter. Sie reduziert die Anzahl betroffener Dienste, aktualisiert erstes Objekt/Fälligkeit und löst einen Alarm automatisch auf, wenn kein betroffener Dienst mehr existiert. Status `acknowledged` und `acknowledged_by` bleiben bestehen, solange weitere Dienste betroffen sind. Manuell erledigte Alarme werden durch Dienstplanänderungen nicht wieder geöffnet.
 
