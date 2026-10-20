@@ -68,3 +68,25 @@ test('expired recovery link is blocked with a clear message',async t=>{
   assert.match(await page.locator('#reset-error').textContent(),/ungültig oder abgelaufen/i);
   assert.equal(await page.locator('button[type=submit]').isDisabled(),true);
 });
+
+for(const [file,mode] of [['login.html','employee'],['admin-login.html','admin']]){
+  test(mode+' login loads external mode handler',async t=>{
+    const {page}=await pageFor(t,file);
+    assert.equal(await page.evaluate(()=>window.AONE_AUTH_MODE),mode);
+    assert.equal(await page.locator('script:not([src])').count(),0,'inline login scripts must be absent');
+  });
+}
+
+test('developer password setup removes one-time token from URL without losing form token',async t=>{
+  const {page}=await pageFor(t,'developer-password-setup.html?token=secret-credential');
+  assert.equal(new URL(page.url()).searchParams.has('token'),false);
+  assert.equal(await page.locator('#token').inputValue(),'secret-credential');
+  assert.equal(await page.locator('meta[name="referrer"]').getAttribute('content'),'no-referrer');
+  assert.equal(await page.locator('script:not([src])').count(),0);
+});
+
+test('developer password setup without token blocks submission',async t=>{
+  const {page}=await pageFor(t,'developer-password-setup.html');
+  assert.equal(await page.locator('#submit').isDisabled(),true);
+  assert.equal(await page.locator('#err').isVisible(),true);
+});
