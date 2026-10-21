@@ -108,3 +108,11 @@ Beim Prüfen der übrigen 56 RPCs wurde eine weitere Berechtigungslücke bestät
 Die Migration `supabase/migrations/20261020174655_guard_employee_id_for_membership_hardening.sql` erzwingt nun eine aktive Mitgliedschaft **in genau derselben Organisation** und einen aktiven Mitarbeiterstatus. Sie erhält die Signatur und bestehenden Datenbankrechte. `tests/employee-id-active-membership.sql` validiert neun Szenarien inkl. Multi-Organisation, Mitarbeiterdeaktivierung, Schichttausch-Sperre und Wiederfreigabe.
 
 Die Migration wurde zusammen mit **9 neuen + 7 vorherigen RPC- + 43 RLS- und vollständigen Backend-Regressionen** transaktional auf PostgreSQL getestet und wieder zurückgerollt. Dies bestätigt die getesteten Pfade, nicht automatisch alle Aufrufer des Helfers.
+
+## Nachtrag 21.10.2026 – Inhaber-Integrität
+
+Bei der Rollenprüfung wurde ein kritischer Fall mit synthetischen Konten bestätigt: Ein alleiniger **aktiver** Owner konnte über `guard_set_member_role` seine Rolle zu `admin` ändern, wenn ein zweiter **inaktiver** Owner in der Mitgliedschaftsliste stand. Die alte Routine zählte alle Owner, unabhängig vom `active`-Wert. Dadurch konnte eine Organisation ohne aktiven Owner zurückbleiben.
+
+Die neue Migration `supabase/migrations/20261021124000_guard_last_active_owner_integrity.sql` zählt aktive Owner und serialisiert `guard_set_member_role` sowie `guard_set_member_active` anhand einer gemeinsamen per-Organisation Advisory-Lock. **11/11** SQL-Regressionen mit echten `authenticated`-Rechten, synthetischen Nutzern und vollständigem `ROLLBACK` bestanden. Dies ist kein echter Test gleichzeitiger Verbindungen.
+
+Separat geprüft: Ein Disponent darf ein Personalprofil ohne Login deaktivieren. Ein Personalprofil mit Login konnte er nicht deaktivieren, weil ein Berechtigungswechsel dafür über Owner/Admin erfolgen muss. Dieses Verhalten entspricht der bestehenden Rollenabgrenzung; es wird daher **nicht** durch eine unkontrollierte Rechtserweiterung geändert.

@@ -129,3 +129,11 @@ Die 59 statisch gesichteten und privilegierten RPCs sind im [Sicherheits-Audit](
 
 
 **Produktivabgleich:** Der geteilte Mitarbeiter-Helfer wurde in Supabase als `20261020174655_guard_employee_id_for_membership_hardening` angewendet und mit dem Test `tests/employee-id-active-membership.sql` nachgeprüft (9/9 PASS).
+
+## Rollenintegrität – mindestens ein aktiver Inhaber (21.10.2026)
+
+`tests/last-active-owner-integrity.sql` enthält elf synthetische Rollentests: Der einzige **aktive** Owner darf nicht in Admin umgestuft werden, selbst wenn noch ein inaktiver Owner existiert. Selbstsperre, Fremd-/Adminzugriff, erlaubte Übergabe an einen zweiten aktiven Owner, spätere Demotierung, Sperrung/Reaktivierung von Admin und Erhalt eines aktiven Inhabers werden geprüft.
+
+Migration `supabase/migrations/20261021124000_guard_last_active_owner_integrity.sql`: Der Owner-Count in `guard_set_member_role` berücksichtigt nur `active=true`; beide Rollen- und Mitgliedschaftsmutationen nehmen dieselbe transaktionsgebundene Advisory-Lock je Organisation. Das verhindert das übliche parallele Durchlaufen einer veralteten Owner-Zählung **für diese zwei RPCs**; ein unabhängiger Parallelverbindungstest steht noch aus.
+
+**Erster Vorabtest:** 11/11 PASS auf der echten Datenbank bei temporärer Funktionsersetzung in `BEGIN/ROLLBACK`. Der bestehende Disponentenpfad ist bewusst eingeschränkt: Disponenten können Personalprofile *ohne* Login deaktivieren; bei Personal mit Login ist die Änderung der Zugriffsberechtigung owner/admin vorbehalten (separater Probe-Test bestätigt die erlaubte No-Login-Variante).
