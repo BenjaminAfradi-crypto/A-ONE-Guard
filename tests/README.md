@@ -137,3 +137,12 @@ Die 59 statisch gesichteten und privilegierten RPCs sind im [Sicherheits-Audit](
 Migration `supabase/migrations/20261021104642_guard_last_active_owner_integrity.sql`: Der Owner-Count in `guard_set_member_role` berücksichtigt nur `active=true`; beide Rollen- und Mitgliedschaftsmutationen nehmen dieselbe transaktionsgebundene Advisory-Lock je Organisation. Das verhindert das übliche parallele Durchlaufen einer veralteten Owner-Zählung **für diese zwei RPCs**; ein unabhängiger Parallelverbindungstest steht noch aus.
 
 **Erster Vorabtest:** 11/11 PASS auf der echten Datenbank bei temporärer Funktionsersetzung in `BEGIN/ROLLBACK`. Der bestehende Disponentenpfad ist bewusst eingeschränkt: Disponenten können Personalprofile *ohne* Login deaktivieren; bei Personal mit Login ist die Änderung der Zugriffsberechtigung owner/admin vorbehalten (separater Probe-Test bestätigt die erlaubte No-Login-Variante).
+
+
+## Kundenportal: Mandanten- und Ticketintegrität (22.10.2026)
+
+`tests/customer-portal-tenant-security.sql` umfasst **18** echte PostgreSQL-Tests mit synthetischen Firmen, Kunden und `SET LOCAL ROLE authenticated`. Sie prüfen: Fremd-Kunden-Verknüpfungen in Portalberechtigungen, falsche Ticket-Firmen und -Objekte, inaktive Kunden über RPC und direktes RLS, erlaubte Kunden-/Administratorfälle sowie die Grenzen des neuen privaten, auf `auth.uid()` beschränkten Berechtigungshelfers.
+
+Die Migration `supabase/migrations/20261022151000_guard_customer_portal_tenant_integrity.sql` ergänzt zusammengesetzte Firmen-/Kunden-/Objekt-Fremdschlüssel, härtet `guard_customer_create_ticket` und harmonisiert Ticket-INSERT-/SELECT-Policies. Das bisherige Portalformular benötigt keine direkte Leseberechtigung auf `guard_customers`.
+
+**Preflight:** keine bestehenden fehlerhaften Verknüpfungen zwischen Firmen, Kunden, Portalberechtigungen oder Tickets; aktuell keine Portalberechtigungen und Tickets in der realen Datenbank. **Vorabtest:** 18/18 + 43/43 RLS + 11/11 Owner + 9/9 Employee + 7/7 Suspended + Backendintegrität zusammen erfolgreich unter `BEGIN ... ROLLBACK`. Keine Produktionsmigration aus diesem Test. GitHub-CI prüft diese SQL-Datei nicht automatisch auf dem Live-Backend.
