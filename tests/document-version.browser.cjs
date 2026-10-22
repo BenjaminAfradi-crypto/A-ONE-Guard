@@ -73,7 +73,7 @@ async function openDocuments(t,{failUpload=false}={}){
 
 test('new version uploads binary before writing metadata to RPC',async t=>{
   const page=await openDocuments(t);
-  await page.waitForFunction(()=>window.documentTestCalls.some(c=>c.kind==='rpc'&&c.name==='guard_new_document_version'));
+  await page.waitForFunction(()=>window.documentTestCalls.some(c=>c.kind==='toast'&&c.msg==='Neue Version angelegt.'));
   const calls=await page.evaluate(()=>window.documentTestCalls);
   const uploadAt=calls.findIndex(c=>c.kind==='upload');
   const rpcAt=calls.findIndex(c=>c.kind==='rpc'&&c.name==='guard_new_document_version');
