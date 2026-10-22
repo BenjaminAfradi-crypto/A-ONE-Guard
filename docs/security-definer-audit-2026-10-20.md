@@ -116,3 +116,10 @@ Bei der Rollenprüfung wurde ein kritischer Fall mit synthetischen Konten bestä
 Die neue Migration `supabase/migrations/20261021104642_guard_last_active_owner_integrity.sql` zählt aktive Owner und serialisiert `guard_set_member_role` sowie `guard_set_member_active` anhand einer gemeinsamen per-Organisation Advisory-Lock. **11/11** SQL-Regressionen mit echten `authenticated`-Rechten, synthetischen Nutzern und vollständigem `ROLLBACK` bestanden. Dies ist kein echter Test gleichzeitiger Verbindungen.
 
 Separat geprüft: Ein Disponent darf ein Personalprofil ohne Login deaktivieren. Ein Personalprofil mit Login konnte er nicht deaktivieren, weil ein Berechtigungswechsel dafür über Owner/Admin erfolgen muss. Dieses Verhalten entspricht der bestehenden Rollenabgrenzung; es wird daher **nicht** durch eine unkontrollierte Rechtserweiterung geändert.
+
+
+## Nachtrag 22.10.2026 – Kundenportal und Ticket-Konsistenz
+
+Die Kontrolle der Kunden- und Dokumentenfunktionen ergab zwei reproduzierbare Abweichungen mit synthetischen `authenticated`-Konten: (1) Ein aktives Kundenportal-Konto konnte trotz inzwischen **inaktivem Kunden** neue Support-Tickets erstellen. (2) Ein berechtigter Manager von Firma B konnte unter `guard_customer_portal_access` seinen Firmennamen an einen Kunden aus Firma A knüpfen; die Ticket-RPC akzeptierte anschließend eine kunden- und firmenübergreifende Zuordnung. Keine der beiden anomalien wurde in bereits vorhandenen realen Zeilen gefunden (0 Portal-Zuordnungen, 0 Tickets beim Preflight).
+
+Der gezielte Fix `supabase/migrations/20261022151000_guard_customer_portal_tenant_integrity.sql` stärkt konsistente IDs mittels **zusammengesetzter Foreign Keys**, prüft im `guard_customer_create_ticket` eine aktive Firmen-/Kundenportalbindung und wendet dieselbe Regel über einen privaten, callergebundenen Helper in SELECT/INSERT-RLS an. Der interne Helper ist für `anon` nicht ausführbar. **18/18** PostgreSQL-Regressionen und alle bestehenden kombinierten Rollen-/Backendtests bestanden innerhalb einer **zurückgerollten** Testtransaktion. Produktivinstallation erst nach GitHub-Prüfung.
