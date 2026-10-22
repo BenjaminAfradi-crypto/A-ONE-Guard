@@ -47,7 +47,7 @@ BEGIN
  BEGIN
   SET LOCAL ROLE authenticated;
   INSERT INTO public.guard_customer_portal_access(org_id,customer_id,user_id,role)
-  VALUES(org_b,ca,portal_user,'viewer');
+  VALUES(org_b,ca,owner_b,'viewer');
   RESET ROLE;
  EXCEPTION WHEN OTHERS THEN
   GET STACKED DIAGNOSTICS msg=MESSAGE_TEXT; RESET ROLE;
