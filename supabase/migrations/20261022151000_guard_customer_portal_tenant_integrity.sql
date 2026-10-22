@@ -70,33 +70,39 @@ $function$;
 
 -- Direct REST reads and inserts must obey the same active-customer rule as
 -- guard_customer_portal_snapshot(). Managers retain their existing access.
+-- RLS cannot read customers through a normal invoker subquery because a
+-- portal-only user deliberately lacks direct read access to that table.
+-- Keep the authorization predicate in an unexposed private schema, scoped
+-- to auth.uid() and an ACTIVE customer and ACTIVE portal grant.
+CREATE OR REPLACE FUNCTION guard_private.can_use_customer_portal(
+  p_org uuid,p_customer uuid
+)
+RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path TO ''
+AS $function$
+  SELECT auth.uid() IS NOT NULL AND EXISTS (
+    SELECT 1
+    FROM public.guard_customer_portal_access a
+    JOIN public.guard_customers c
+      ON c.id=a.customer_id AND c.org_id=a.org_id
+    WHERE a.org_id=p_org AND a.customer_id=p_customer
+      AND a.user_id=auth.uid() AND a.active AND c.status='active'
+  )
+$function$;
+
+REVOKE ALL ON FUNCTION guard_private.can_use_customer_portal(uuid,uuid)
+  FROM PUBLIC,anon,authenticated;
+GRANT EXECUTE ON FUNCTION guard_private.can_use_customer_portal(uuid,uuid)
+  TO authenticated;
+
 ALTER POLICY guard_customer_tickets_insert ON public.guard_customer_tickets
 WITH CHECK (
   guard_private.can_manage(org_id,auth.uid())
-  OR (
-    created_by=auth.uid()
-    AND EXISTS (
-      SELECT 1
-      FROM public.guard_customer_portal_access a
-      JOIN public.guard_customers c
-        ON c.id=a.customer_id AND c.org_id=a.org_id
-      WHERE a.org_id=guard_customer_tickets.org_id
-        AND a.customer_id=guard_customer_tickets.customer_id
-        AND a.user_id=auth.uid() AND a.active AND c.status='active'
-    )
-  )
+  OR (created_by=auth.uid()
+      AND guard_private.can_use_customer_portal(org_id,customer_id))
 );
 
 ALTER POLICY guard_customer_tickets_select ON public.guard_customer_tickets
 USING (
   guard_private.can_manage(org_id,auth.uid())
-  OR EXISTS (
-    SELECT 1
-    FROM public.guard_customer_portal_access a
-    JOIN public.guard_customers c
-      ON c.id=a.customer_id AND c.org_id=a.org_id
-    WHERE a.org_id=guard_customer_tickets.org_id
-      AND a.customer_id=guard_customer_tickets.customer_id
-      AND a.user_id=auth.uid() AND a.active AND c.status='active'
-  )
+  OR guard_private.can_use_customer_portal(org_id,customer_id)
 );
