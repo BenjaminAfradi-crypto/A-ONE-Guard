@@ -17,7 +17,7 @@ DECLARE
  ca uuid:=gen_random_uuid(); ca2 uuid:=gen_random_uuid();
  cinactive uuid:=gen_random_uuid(); cb uuid:=gen_random_uuid();
  sa uuid:=gen_random_uuid();sa2 uuid:=gen_random_uuid();sb uuid:=gen_random_uuid();
- ticket_id uuid; msg text; denied boolean; got integer;
+ ticket_id uuid; msg text; denied boolean; got integer; helper_allowed boolean; helper_inactive boolean; helper_foreign boolean;
 BEGIN
  INSERT INTO auth.users(id,email) VALUES
  (owner_a,'customer-a-owner-'||owner_a||'@example.invalid'),
@@ -69,7 +69,27 @@ BEGIN
  INSERT INTO customer_portal_security_results VALUES
  ('manager cannot create ticket with customer in another org',denied,coalesce(msg,'unexpected ticket'));
 
+ INSERT INTO customer_portal_security_results VALUES(
+   'private helper blocks anonymous API execution',
+   NOT has_function_privilege('anon','guard_private.can_use_customer_portal(uuid,uuid)','EXECUTE'),
+   'restricted private helper grants');
+
  PERFORM set_config('request.jwt.claim.sub',portal_user::text,true);
+ BEGIN
+   SET LOCAL ROLE authenticated;
+   SELECT guard_private.can_use_customer_portal(org_a,ca),
+          guard_private.can_use_customer_portal(org_a,cinactive),
+          guard_private.can_use_customer_portal(org_b,cb)
+   INTO helper_allowed,helper_inactive,helper_foreign;
+   RESET ROLE;
+ END;
+ INSERT INTO customer_portal_security_results VALUES
+  ('portal helper accepts own active customer',helper_allowed,'bound to auth.uid');
+ INSERT INTO customer_portal_security_results VALUES
+  ('portal helper rejects inactive customer',NOT helper_inactive,'customer.status inactive');
+ INSERT INTO customer_portal_security_results VALUES
+  ('portal helper rejects ungranted other tenant',NOT helper_foreign,'no grant');
+
  ticket_id:=null;msg:=null;
  BEGIN
   SET LOCAL ROLE authenticated;
@@ -225,7 +245,7 @@ $test$;
 
 DO $assert$
 BEGIN
-  IF (SELECT count(*) FROM customer_portal_security_results)<>14
+  IF (SELECT count(*) FROM customer_portal_security_results)<>18
     OR EXISTS(SELECT 1 FROM customer_portal_security_results WHERE passed IS DISTINCT FROM true)
   THEN RAISE EXCEPTION 'customer security regression failure: %',
     (SELECT string_agg(test_name||' => '||coalesce(details,'null'),'; ')
